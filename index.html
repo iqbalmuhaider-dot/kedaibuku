@@ -87,15 +87,6 @@
             flex-direction: row;
         }
     }
-    /* Hide number spinner */
-    input[type=number]::-webkit-inner-spin-button, 
-    input[type=number]::-webkit-outer-spin-button { 
-        -webkit-appearance: none; 
-        margin: 0; 
-    }
-    input[type=number] {
-        -moz-appearance: textfield;
-    }
   </style>
  </head>
  <body class="bg-gradient-to-br from-gray-50 to-blue-50 min-h-full">
@@ -220,24 +211,18 @@
                 <select id="packageSelect" class="w-full px-4 py-3 border-2 border-blue-300 rounded-xl input-focus focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white transition-all text-sm md:text-base"> <option value="">-- Pilih Pakej (Pilihan) --</option> </select>
                 <p class="text-xs md:text-sm text-gray-600 mt-2"><i class="fas fa-info-circle mr-1"></i><span data-lang="packageInfo">Pilih pakej untuk mengisi troli dengan cepat</span></p>
              </div>
-             
-             <!-- Items Container (Replaced Table with Responsive Divs) -->
-             <div class="bg-gray-50 rounded-xl border-2 border-gray-200 p-3 md:p-4">
-               <!-- Header for Desktop (Hidden on mobile) -->
-               <div class="hidden md:flex justify-between text-sm font-bold text-gray-500 mb-3 px-3 uppercase tracking-wider">
-                 <span><span data-lang="itemName">Nama Barang</span></span>
-                 <div class="flex gap-16 mr-8">
-                   <span class="text-right"><span data-lang="price">Harga</span></span>
-                   <span class="text-center"><span data-lang="quantity">Kuantiti</span></span>
-                 </div>
-               </div>
-               
-               <!-- Responsive Item List -->
-               <div id="shoppingItemsContainer" class="space-y-3">
-                   <!-- Content injected by JS -->
-               </div>
+             <div class="overflow-x-auto rounded-xl border-2 border-gray-200">
+              <table class="w-full min-w-[600px] md:min-w-0">
+               <thead class="bg-gray-100 text-gray-700">
+                <tr>
+                 <th class="px-4 py-3 text-left font-semibold text-sm md:text-base"><span data-lang="itemName">Nama Barang</span></th>
+                 <th class="px-4 py-3 text-right font-semibold text-sm md:text-base"><span data-lang="price">Harga (RM)</span></th>
+                 <th class="px-4 py-3 text-center font-semibold text-sm md:text-base"><span data-lang="quantity">Kuantiti</span></th>
+                </tr>
+               </thead>
+               <tbody id="itemsTableBody" class="divide-y divide-gray-200 text-sm md:text-base"></tbody>
+              </table>
              </div>
-
             </div>
            </div>
            <!-- Cart Summary (Step 2) -->
@@ -273,14 +258,18 @@
                <p class="text-gray-500 text-xs md:text-sm" data-lang="step3Subtitle">Sila pilih yuran yang berkaitan (PIBG, Sukan, dll)</p>
               </div>
              </div>
-             
-             <!-- Fees Container (Replaced Table with Responsive Divs) -->
-             <div class="bg-gray-50 rounded-xl border-2 border-gray-200 p-3 md:p-4">
-                <div id="feesListContainer" class="space-y-3">
-                   <!-- Content injected by JS -->
-                </div>
+             <div class="overflow-x-auto rounded-xl border-2 border-gray-200">
+              <table class="w-full min-w-[600px] md:min-w-0">
+               <thead class="bg-gray-100 text-gray-700">
+                <tr>
+                 <th class="px-4 py-3 text-left font-semibold text-sm md:text-base"><span data-lang="feeName">Nama Yuran</span></th>
+                 <th class="px-4 py-3 text-right font-semibold text-sm md:text-base"><span data-lang="amount">Jumlah (RM)</span></th>
+                 <th class="px-4 py-3 text-center font-semibold w-24 text-sm md:text-base"><span data-lang="select">Pilih</span></th>
+                </tr>
+               </thead>
+               <tbody id="feesTableBody" class="divide-y divide-gray-200 text-sm md:text-base"></tbody>
+              </table>
              </div>
-
             </div>
            </div>
            <!-- Cart Summary (Step 3 Final) -->
@@ -466,9 +455,7 @@
      </div>
     </div>
     <!-- Analysis Tab -->
-    <!-- ... Analysis Content (Unchanged) ... -->
     <div id="analysisTab" class="admin-tab-content hidden">
-      <!-- ... content ... -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg"><h4 class="text-sm font-semibold opacity-80 mb-1" data-lang="totalRevenue">Jumlah Jualan</h4><p class="text-2xl md:text-3xl font-bold" id="anaTotalRevenue">RM 0.00</p></div>
           <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl p-6 text-white shadow-lg"><h4 class="text-sm font-semibold opacity-80 mb-1" data-lang="totalOrders">Jumlah Tempahan</h4><p class="text-2xl md:text-3xl font-bold" id="anaTotalOrders">0</p></div>
@@ -500,7 +487,6 @@
       </div>
     </div>
     <!-- Items Tab -->
-    <!-- ... Same Items Tab ... -->
     <div id="itemsTab" class="admin-tab-content hidden">
      <!-- ... content ... -->
      <div class="bg-white rounded-2xl shadow-xl p-4 md:p-6">
@@ -538,7 +524,6 @@
      </div>
     </div>
     <!-- Packages Tab -->
-    <!-- ... Same Packages Tab ... -->
     <div id="packagesTab" class="admin-tab-content hidden">
      <!-- ... content ... -->
      <div class="bg-white rounded-2xl shadow-xl p-4 md:p-6">
@@ -564,7 +549,6 @@
      </div>
     </div>
     <!-- Classes Tab -->
-    <!-- ... Same Classes Tab ... -->
     <div id="classesTab" class="admin-tab-content hidden">
      <!-- ... content ... -->
      <div class="bg-white rounded-2xl shadow-xl p-6">
@@ -576,7 +560,6 @@
      </div>
     </div>
     <!-- Fees Tab (PIBG) -->
-    <!-- ... Same Fees Tab ... -->
     <div id="feesTab" class="admin-tab-content hidden">
      <!-- ... content ... -->
      <div class="bg-white rounded-2xl shadow-xl p-4 md:p-6">
@@ -616,7 +599,6 @@
      </div>
     </div>
     <!-- LOGS Tab (NEW) -->
-    <!-- ... Same Logs Tab ... -->
     <div id="logsTab" class="admin-tab-content hidden">
      <!-- ... content ... -->
      <div class="bg-white rounded-2xl shadow-xl p-4 md:p-6">
@@ -640,7 +622,7 @@
      </div>
     </div>
     <!-- Settings Tab -->
-    <!-- ... Same Settings Tabs ... -->
+    <!-- ... same as before ... -->
     <div id="settingsTab" class="admin-tab-content hidden">
       <!-- ... content ... -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -664,6 +646,7 @@
           </div>
           <div id="googleSheetStatusMain" class="text-sm font-medium text-gray-600 bg-gray-50 p-2 rounded text-center border border-gray-200">Checking...</div>
         </div>
+        <!-- TAMBAHAN: Kad Tetapan Pembayaran -->
         <div class="bg-white rounded-2xl shadow-xl p-6 cursor-pointer hover:shadow-2xl transition-all border border-orange-50" onclick="showAdminTab('paymentSettingsTab')">
           <div class="flex items-center gap-4 mb-4">
             <div class="bg-orange-100 p-4 rounded-full text-orange-600"><i class="fas fa-wallet text-3xl"></i></div>
@@ -677,8 +660,7 @@
       </div>
     </div>
     
-    <!-- Payment Settings Detail -->
-    <!-- ... Same Payment Detail ... -->
+    <!-- TAMBAHAN: Tab Detail Tetapan Pembayaran -->
     <div id="paymentSettingsTab" class="admin-tab-content hidden">
      <button onclick="showAdminTab('settingsTab')" class="mb-4 px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all font-semibold text-sm flex items-center gap-2"><i class="fas fa-arrow-left"></i>Back</button>
      <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 max-w-2xl mx-auto">
@@ -726,88 +708,457 @@
      </div>
     </div>
 
-    <!-- Telegram & Google Sheet Tabs (Unchanged) -->
-    <!-- ... Telegram Tab ... -->
+    <!-- Telegram Detail Tab -->
     <div id="telegramTab" class="admin-tab-content hidden">
-      <!-- ... content ... -->
-      <!-- (Same as provided previously) -->
-      <!-- Simplified for brevity in this response, assume unchanged from previous file -->
+     <!-- ... content ... -->
      <button onclick="showAdminTab('settingsTab')" class="mb-4 px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all font-semibold text-sm flex items-center gap-2"><i class="fas fa-arrow-left"></i>Back</button>
      <div class="bg-white rounded-2xl shadow-xl p-4 md:p-6">
-       <!-- ... content ... -->
-       <div class="space-y-4">
-       <div><label class="block text-gray-700 font-semibold mb-2 text-sm" for="telegramBotToken">Bot Token</label> <input type="text" id="telegramBotToken" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl input-focus focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"></div>
-       <div><label class="block text-gray-700 font-semibold mb-2 text-sm" for="telegramChatId">Chat ID</label> <input type="text" id="telegramChatId" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl input-focus focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"></div>
-       <div class="flex flex-col sm:flex-row gap-3">
-           <button onclick="testTelegramConnection()" class="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl shadow-lg font-semibold hover:shadow-xl transition-all text-sm flex items-center justify-center gap-2">Test</button> 
-           <button onclick="saveTelegramSettings()" class="flex-1 px-6 py-3 btn-secondary text-white rounded-xl shadow-lg font-semibold text-sm flex items-center justify-center gap-2">Save</button>
+      <div class="flex items-center gap-3 mb-6 pb-4 border-b-2 border-blue-100">
+       <div class="bg-gradient-to-br from-blue-400 to-blue-600 p-3 rounded-xl text-white"><i class="fab fa-telegram text-xl md:text-3xl"></i></div>
+       <div>
+        <h3 class="text-lg md:text-xl font-bold text-primary"><span data-lang="telegramSettings">Tetapan Telegram Bot</span></h3>
+        <p class="text-xs md:text-sm text-gray-600"><span data-lang="telegramSubtitle">Hantar notifikasi order automatik ke Telegram</span></p>
        </div>
       </div>
-      <div id="telegramStatus" class="mt-6 p-4 bg-gray-50 rounded-xl border-2 border-gray-200">...</div>
+      <div class="mb-6 p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl border-2 border-blue-200 overflow-hidden">
+       <h4 class="font-bold text-base md:text-lg mb-3 text-blue-800"><i class="fas fa-info-circle mr-2"></i><span data-lang="howToSetup">Cara Setup Telegram Bot</span></h4>
+       <ol class="space-y-2 text-xs md:text-sm text-gray-700 ml-4 list-decimal">
+        <li><span data-lang="step1Telegram">Buka Telegram dan cari <b>@BotFather</b></span></li>
+        <li><span data-lang="step2Telegram">Hantar command: <code class="bg-blue-100 px-2 py-1 rounded">/newbot</code></span></li>
+        <li><span data-lang="step3Telegram">Ikut arahan dan dapatkan <b>Bot Token</b></span></li>
+        <li><span data-lang="step4Telegram">Buat grup Telegram dan tambah bot anda ke grup</span></li>
+        <li><span data-lang="step5Telegram">Hantar mesej dalam grup, kemudian buka link update</span></li>
+        <li><span data-lang="step6Telegram">Cari <b>"chat":{"id":...}</b> - itu Chat ID anda!</span></li>
+       </ol>
+      </div>
+      <div class="space-y-4">
+       <div><label class="block text-gray-700 font-semibold mb-2 text-sm" for="telegramBotToken"> <i class="fas fa-key text-primary mr-2"></i><span data-lang="botToken">Bot Token</span> </label> <input type="text" id="telegramBotToken" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl input-focus focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" placeholder="123456789:ABCdefGHIjklMNOpqrsTUVwxyz">
+        <p class="text-xs text-gray-500 mt-1"><span data-lang="botTokenHint">Token dari @BotFather</span></p>
+       </div>
+       <div><label class="block text-gray-700 font-semibold mb-2 text-sm" for="telegramChatId"> <i class="fas fa-comments text-primary mr-2"></i><span data-lang="chatId">Chat ID</span> </label> <input type="text" id="telegramChatId" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl input-focus focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm" placeholder="-1234567890">
+        <p class="text-xs text-gray-500 mt-1"><span data-lang="chatIdHint">ID grup atau chat Telegram</span></p>
+       </div>
+       <div class="flex flex-col sm:flex-row gap-3">
+           <button onclick="testTelegramConnection()" class="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl shadow-lg font-semibold hover:shadow-xl transition-all text-sm flex items-center justify-center gap-2"> <i class="fas fa-paper-plane"></i><span data-lang="testConnection">Test Sambungan</span> </button> 
+           <button onclick="saveTelegramSettings()" class="flex-1 px-6 py-3 btn-secondary text-white rounded-xl shadow-lg font-semibold text-sm flex items-center justify-center gap-2"> <i class="fas fa-save"></i><span data-lang="saveSettings">Simpan Tetapan</span> </button>
+       </div>
+      </div>
+      <div id="telegramStatus" class="mt-6 p-4 bg-gray-50 rounded-xl border-2 border-gray-200">
+       <p class="text-sm text-gray-600"><i class="fas fa-info-circle mr-2"></i><span data-lang="telegramStatusInfo">Status: Telegram belum dikonfigurasi</span></p>
+      </div>
      </div>
     </div>
-    
+    <!-- Google Sheet Detail Tab -->
     <div id="googleSheetTab" class="admin-tab-content hidden">
-      <!-- ... content ... -->
-      <!-- (Same as provided previously) -->
-       <button onclick="showAdminTab('settingsTab')" class="mb-4 px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all font-semibold text-sm flex items-center gap-2"><i class="fas fa-arrow-left"></i>Back</button>
-       <div class="bg-white rounded-2xl shadow-xl p-4 md:p-6">
-         <!-- ... content ... -->
-         <div class="space-y-4">
-           <div><label class="block text-gray-700 font-semibold mb-2 text-sm" for="googleSheetUrl">Web App URL</label> <input type="text" id="googleSheetUrl" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl input-focus focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"></div>
-           <div class="flex flex-col sm:flex-row gap-3">
-               <button onclick="testGoogleSheetConnection()" class="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl shadow-lg font-semibold hover:shadow-xl transition-all text-sm flex items-center justify-center gap-2">Test</button> 
-               <button onclick="saveGoogleSheetSettings()" class="flex-1 px-6 py-3 btn-secondary text-white rounded-xl shadow-lg font-semibold text-sm flex items-center justify-center gap-2">Save</button>
-           </div>
-         </div>
-          <div id="googleSheetStatus" class="mt-6 p-4 bg-gray-50 rounded-xl border-2 border-gray-200">...</div>
+     <!-- ... content ... -->
+     <button onclick="showAdminTab('settingsTab')" class="mb-4 px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all font-semibold text-sm flex items-center gap-2"><i class="fas fa-arrow-left"></i>Back</button>
+     <div class="bg-white rounded-2xl shadow-xl p-4 md:p-6">
+      <div class="flex items-center gap-3 mb-6 pb-4 border-b-2 border-green-100">
+       <div class="bg-gradient-to-br from-green-500 to-green-700 p-3 rounded-xl text-white"><i class="fab fa-google text-xl md:text-3xl"></i></div>
+       <div>
+        <h3 class="text-lg md:text-xl font-bold text-primary"><span data-lang="googleSheetSettings">Tetapan Google Sheet</span></h3>
+        <p class="text-xs md:text-sm text-gray-600"><span data-lang="googleSheetSubtitle">Simpan tempahan automatik ke Google Sheets</span></p>
        </div>
+      </div>
+      <div class="mb-6 p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border-2 border-green-200">
+       <h4 class="font-bold text-base md:text-lg mb-3 text-green-800"><i class="fas fa-info-circle mr-2"></i><span data-lang="howToSetupSheet">Cara Setup Google Sheet</span></h4>
+       <ol class="space-y-2 text-xs md:text-sm text-gray-700 ml-4 list-decimal">
+        <li><span data-lang="step1Sheet">Buka Google Sheets dan buat spreadsheet baru</span></li>
+        <li><span data-lang="step2Sheet">Klik <b>Extensions → Apps Script</b></span></li>
+        <li><span data-lang="step3Sheet">Padam kod sedia ada, salin kod dari bawah dan paste</span></li>
+        <li><span data-lang="step4Sheet">Klik <b>Deploy → New deployment</b></span></li>
+        <li><span data-lang="step5Sheet">Pilih <b>Web app</b>, set "Execute as: Me" dan "Who has access: Anyone"</span></li>
+        <li><span data-lang="step6Sheet">Klik <b>Deploy</b>, copy <b>Web app URL</b> dan paste di bawah</span></li>
+       </ol>
+      </div>
+      <div class="mb-6"><label class="block text-gray-700 font-semibold mb-3 text-sm"> <i class="fas fa-code text-green-600 mr-2"></i><span data-lang="appsScriptCode">Kod Apps Script (Copy &amp; Paste)</span> </label>
+       <div class="relative"><textarea id="appsScriptCode" readonly class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl bg-gray-50 font-mono text-xs h-48 md:h-64 resize-none focus:ring-2 focus:ring-green-500 focus:border-transparent" style="font-family: 'Courier New', monospace;">function doPost(e) {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(['Tarikh/Date', 'Order ID', 'Nama Ibu Bapa/Parent Name', 'Telefon/Phone', 'Email', 'Nama Pelajar/Student Name', 'Kelas/Class', 'Barang/Items', 'Kaedah Bayaran/Payment', 'Jumlah/Total (RM)', 'Status']);
+      const headerRange = sheet.getRange(1, 1, 1, 11);
+      headerRange.setBackground('#21409a');
+      headerRange.setFontColor('#ffffff');
+      headerRange.setFontWeight('bold');
+      headerRange.setHorizontalAlignment('center');
+    }
+    
+    const data = JSON.parse(e.postData.contents);
+    
+    let itemsList = '';
+    if (data.items) {
+      for (const [itemId, item] of Object.entries(data.items)) {
+        itemsList += `${item.name} (${item.quantity}x RM${item.price.toFixed(2)})\n`;
+      }
+    }
+    
+    sheet.appendRow([
+      new Date(data.timestamp || Date.now()),
+      data.orderId || '',
+      data.parentName || '',
+      data.parentPhone || '',
+      data.parentEmail || '',
+      data.studentName || '',
+      data.studentClass || '',
+      itemsList.trim(),
+      data.paymentMethod || '',
+      data.total || 0,
+      data.status || 'New'
+    ]);
+    
+    const lastRow = sheet.getLastRow();
+    const dataRange = sheet.getRange(lastRow, 1, 1, 11);
+    dataRange.setHorizontalAlignment('left');
+    dataRange.setVerticalAlignment('top');
+    dataRange.setWrap(true);
+    for (let i = 1; i <= 11; i++) sheet.autoResizeColumn(i);
+    
+    return ContentService.createTextOutput(JSON.stringify({status: 'success', message: 'Data saved'})).setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({status: 'error', message: error.toString()})).setMimeType(ContentService.MimeType.JSON);
+  }
+}</textarea> <button onclick="copyAppsScriptCode()" class="absolute top-2 right-2 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all text-xs font-semibold shadow-md flex items-center gap-1"> <i class="fas fa-copy"></i><span data-lang="copyCode">Copy</span> </button>
+       </div>
+      </div>
+      <div class="space-y-4">
+       <div><label class="block text-gray-700 font-semibold mb-2 text-sm" for="googleSheetUrl"> <i class="fas fa-link text-green-600 mr-2"></i><span data-lang="webAppUrl">Web App URL</span> </label> <input type="text" id="googleSheetUrl" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl input-focus focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm" placeholder="https://script.google.com/macros/s/...../exec">
+        <p class="text-xs text-gray-500 mt-1"><span data-lang="webAppUrlHint">URL dari Google Apps Script deployment</span></p>
+       </div>
+       <div class="flex flex-col sm:flex-row gap-3">
+           <button onclick="testGoogleSheetConnection()" class="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl shadow-lg font-semibold hover:shadow-xl transition-all text-sm flex items-center justify-center gap-2"> <i class="fas fa-vial"></i><span data-lang="testConnection">Test Sambungan</span> </button> 
+           <button onclick="saveGoogleSheetSettings()" class="flex-1 px-6 py-3 btn-secondary text-white rounded-xl shadow-lg font-semibold text-sm flex items-center justify-center gap-2"> <i class="fas fa-save"></i><span data-lang="saveSettings">Simpan Tetapan</span> </button>
+       </div>
+      </div>
+      <div id="googleSheetStatus" class="mt-6 p-4 bg-gray-50 rounded-xl border-2 border-gray-200">
+       <p class="text-sm text-gray-600"><i class="fas fa-info-circle mr-2"></i><span data-lang="googleSheetStatusInfo">Status: Google Sheet belum dikonfigurasi</span></p>
+      </div>
+     </div>
     </div>
    </div>
   </div>
 
   <script>
-    // ... Translations & Config (Same as before) ...
+    // Translations
     const translations = {
+      // Translations... (same as before)
       ms: {
-        // ... (Keep existing translations) ...
+        welcomeTitle: "Selamat Datang",
+        parentRole: "Ibu Bapa / Penjaga",
+        parentDesc: "Buat tempahan buku dan semak status tempahan anak anda.",
+        adminRole: "Admin / Guru",
+        adminDesc: "Log masuk untuk mengurus tempahan, inventori dan laporan.",
+        newOrder: "Tempahan Baru",
+        checkStatus: "Semak Status",
+        step1Title: "Langkah 1: Butiran Ibu Bapa & Pelajar",
+        step1Subtitle: "Sila isi maklumat dengan lengkap",
+        parentName: "Nama Ibu Bapa/Penjaga",
+        phoneNumber: "Nombor Telefon",
+        emailAddress: "Alamat Email",
+        studentName: "Nama Pelajar",
+        class: "Kelas",
         selectClass: "Pilih Kelas",
+        nextStep: "Langkah Seterusnya",
+        back: "Kembali",
+        step2Title: "Langkah 2: Pilih Barang",
+        step2Subtitle: "Pilih buku dan alat tulis yang diperlukan",
+        quickPackage: "Pakej Pantas",
         selectPackage: "-- Pilih Pakej (Pilihan) --",
+        packageInfo: "Pilih pakej untuk mengisi troli dengan cepat",
+        itemName: "Nama Barang",
+        price: "Harga (RM)",
+        quantity: "Kuantiti",
+        cartSummary: "Ringkasan Troli",
+        noItems: "Tiada barang dipilih",
+        grandTotal: "Jumlah Besar:",
+        paymentMethod: "Kaedah Bayaran",
         cash: "Tunai",
         online: "Pemindahan Online",
-        noItems: "Tiada barang dipilih"
+        submitOrder: "Hantar Tempahan",
+        checkOrderStatus: "Semak Status Tempahan",
+        checkStatusSubtitle: "Masukkan nombor telefon untuk semak tempahan",
+        enterPhone: "Masukkan Nombor Telefon",
+        searchOrders: "Cari Tempahan",
+        adminAccess: "Akses Admin",
+        password: "Kata Laluan",
+        cancel: "Batal",
+        login: "Log Masuk",
+        adminDashboard: "Panel Admin",
+        close: "Tutup",
+        orders: "Tempahan",
+        analysis: "Analisis",
+        items: "Barang",
+        packages: "Pakej",
+        classes: "Kelas",
+        telegram: "Telegram",
+        orderManagement: "Pengurusan Tempahan",
+        orderId: "ID Tempahan",
+        parent: "Ibu Bapa",
+        student: "Pelajar",
+        total: "Jumlah",
+        status: "Status",
+        actions: "Tindakan",
+        itemsManagement: "Pengurusan Barang",
+        addItem: "Tambah Barang",
+        addNewItem: "Tambah Barang Baru",
+        saveItem: "Simpan Barang",
+        packageManagement: "Pengurusan Pakej",
+        addPackage: "Tambah Pakej",
+        createNewPackage: "Cipta Pakej Baru",
+        packageName: "Nama Pakej",
+        selectItems: "Pilih Barang",
+        savePackage: "Simpan Pakej",
+        classManagement: "Class Management",
+        addNewClass: "Add New Class",
+        add: "Tambah",
+        editItem: "Edit Barang",
+        saveChanges: "Simpan",
+        orderDetails: "Butiran Tempahan",
+        view: "Lihat",
+        edit: "Edit",
+        delete: "Padam",
+        print: "Cetak",
+        new: "Baru",
+        paid: "Dibayar",
+        done: "Selesai",
+        processing: "Dalam Proses",
+        step3Title: "Langkah 3: Bayaran Yuran",
+        step3Subtitle: "Sila pilih yuran yang berkaitan (PIBG, Sukan, dll)",
+        feeName: "Nama Yuran",
+        amount: "Jumlah (RM)",
+        description: "Keterangan",
+        select: "Pilih",
+        nextStepFees: "Seterusnya: Yuran",
+        fees: "Yuran PIBG",
+        feesManagement: "Pengurusan Yuran PIBG",
+        addFee: "Tambah Yuran",
+        addNewFee: "Tambah Yuran Baru",
+        saveFee: "Simpan Yuran",
+        editFee: "Edit Yuran",
+        telegramSettings: "Tetapan Telegram Bot",
+        telegramSubtitle: "Hantar notifikasi order automatik ke Telegram",
+        howToSetup: "Cara Setup Telegram Bot",
+        step1Telegram: "Buka Telegram dan cari @BotFather",
+        step2Telegram: "Hantar command: /newbot",
+        step3Telegram: "Ikut arahan dan dapatkan Bot Token",
+        step4Telegram: "Buat grup Telegram dan tambah bot anda ke grup",
+        step5Telegram: "Hantar mesej dalam grup, kemudian buka link update",
+        step6Telegram: "Cari \"chat\":{\"id\":-1234567890} - itu Chat ID anda!",
+        botToken: "Bot Token",
+        botTokenHint: "Token from @BotFather",
+        chatId: "Chat ID",
+        chatIdHint: "ID grup atau chat Telegram",
+        testConnection: "Test Sambungan",
+        saveSettings: "Simpan Tetapan",
+        telegramStatusInfo: "Status: Telegram belum dikonfigurasi",
+        googleSheet: "Google Sheet",
+        googleSheetSettings: "Tetapan Google Sheet",
+        googleSheetSubtitle: "Simpan tempahan automatik ke Google Sheets",
+        howToSetupSheet: "Cara Setup Google Sheet",
+        step1Sheet: "Buka Google Sheets dan buat spreadsheet baru",
+        step2Sheet: "Klik Extensions → Apps Script",
+        step3Sheet: "Padam kod sedia ada, salin kod dari bawah dan paste",
+        step4Sheet: "Klik Deploy → New deployment",
+        step5Sheet: "Pilih Web app, set \"Execute as: Me\" dan \"Who has access: Anyone\"",
+        step6Sheet: "Klik Deploy, copy Web app URL dan paste di bawah",
+        appsScriptCode: "Kod Apps Script (Copy & Paste)",
+        copyCode: "Copy Kod",
+        webAppUrl: "Web App URL",
+        webAppUrlHint: "URL dari Google Apps Script deployment",
+        googleSheetStatusInfo: "Status: Google Sheet belum dikonfigurasi",
+        totalRevenue: "Jumlah Jualan",
+        totalOrders: "Jumlah Tempahan",
+        completedOrders: "Dibayar",
+        pendingOrders: "Baru",
+        statusAnalytics: "Analisis Status Tempahan",
+        settings: "Tetapan",
+        deleteSelected: "Padam Terpilih",
+        logs: "Log",
+        logTime: "Masa",
+        logAction: "Tindakan",
+        logDetails: "Butiran"
       },
       en: {
-        // ... (Keep existing translations) ...
+        welcomeTitle: "Welcome",
+        parentRole: "Parent / Guardian",
+        parentDesc: "Place orders and check status for your child.",
+        adminRole: "Admin / Teacher",
+        adminDesc: "Login to manage orders, inventory, and reports.",
+        newOrder: "New Order",
+        checkStatus: "Check Status",
+        step1Title: "Step 1: Parent & Student Details",
+        step1Subtitle: "Please fill in all information",
+        parentName: "Parent/Guardian Name",
+        phoneNumber: "Phone Number",
+        emailAddress: "Email Address",
+        studentName: "Student Name",
+        class: "Class",
         selectClass: "Select Class",
+        nextStep: "Next Step",
+        back: "Back",
+        step2Title: "Step 2: Select Items",
+        step2Subtitle: "Choose required books and stationery",
+        quickPackage: "Quick Package",
         selectPackage: "-- Select a Package (Optional) --",
+        packageInfo: "Select a package to quickly fill your cart",
+        itemName: "Item Name",
+        price: "Price (RM)",
+        quantity: "Quantity",
+        cartSummary: "Cart Summary",
+        noItems: "No items selected",
+        grandTotal: "Grand Total:",
+        paymentMethod: "Payment Method",
         cash: "Cash",
         online: "Online Transfer",
-        noItems: "No items selected"
+        submitOrder: "Submit Order",
+        checkOrderStatus: "Check Order Status",
+        checkStatusSubtitle: "Enter phone number to check orders",
+        enterPhone: "Enter Phone Number",
+        searchOrders: "Search Orders",
+        adminAccess: "Admin Access",
+        password: "Password",
+        cancel: "Cancel",
+        login: "Login",
+        adminDashboard: "Admin Dashboard",
+        close: "Close",
+        orders: "Orders",
+        analysis: "Analysis",
+        items: "Items",
+        packages: "Packages",
+        classes: "Classes",
+        telegram: "Telegram",
+        orderManagement: "Order Management",
+        orderId: "Order ID",
+        parent: "Parent",
+        student: "Student",
+        total: "Total",
+        status: "Status",
+        actions: "Actions",
+        itemsManagement: "Items Management",
+        addItem: "Add Item",
+        addNewItem: "Add New Item",
+        saveItem: "Save Item",
+        packageManagement: "Package Management",
+        addPackage: "Add Package",
+        createNewPackage: "Create New Package",
+        packageName: "Package Name",
+        selectItems: "Select Items",
+        savePackage: "Save Package",
+        classManagement: "Class Management",
+        addNewClass: "Add New Class",
+        add: "Add",
+        editItem: "Edit Item",
+        saveChanges: "Save Changes",
+        orderDetails: "Order Details",
+        view: "View",
+        edit: "Edit",
+        delete: "Delete",
+        print: "Print",
+        new: "New",
+        paid: "Paid",
+        done: "Done",
+        processing: "Processing",
+        step3Title: "Step 3: Fee Payment",
+        step3Subtitle: "Please select relevant fees (PIBG, Sports, etc)",
+        feeName: "Fee Name",
+        amount: "Amount (RM)",
+        description: "Description",
+        select: "Select",
+        nextStepFees: "Next: Fees",
+        fees: "PIBG Fees",
+        feesManagement: "PIBG Fees Management",
+        addFee: "Add Fee",
+        addNewFee: "Add New Fee",
+        saveFee: "Save Fee",
+        editFee: "Edit Fee",
+        telegramSettings: "Telegram Bot Settings",
+        telegramSubtitle: "Send automatic order notifications to Telegram",
+        howToSetup: "How to Setup Telegram Bot",
+        step1Telegram: "Open Telegram and search for @BotFather",
+        step2Telegram: "Send command: /newbot",
+        step3Telegram: "Follow instructions and get Bot Token",
+        step4Telegram: "Create a Telegram group and add your bot to the group",
+        step5Telegram: "Send a message in the group, then open link update",
+        step6Telegram: "Look for \"chat\":{\"id\":-1234567890} - that's your Chat ID!",
+        botToken: "Bot Token",
+        botTokenHint: "Token from @BotFather",
+        chatId: "Chat ID",
+        chatIdHint: "Group or chat Telegram ID",
+        testConnection: "Test Connection",
+        saveSettings: "Save Settings",
+        telegramStatusInfo: "Status: Telegram not configured yet",
+        googleSheet: "Google Sheet",
+        googleSheetSettings: "Google Sheet Settings",
+        googleSheetSubtitle: "Save orders automatically to Google Sheets",
+        howToSetupSheet: "How to Setup Google Sheet",
+        step1Sheet: "Open Google Sheets and create a new spreadsheet",
+        step2Sheet: "Click Extensions → Apps Script",
+        step3Sheet: "Delete existing code, copy the code below and paste",
+        step4Sheet: "Click Deploy → New deployment",
+        step5Sheet: "Choose Web app, set \"Execute as: Me\" and \"Who has access: Anyone\"",
+        step6Sheet: "Click Deploy, copy Web app URL and paste below",
+        appsScriptCode: "Apps Script Code (Copy & Paste)",
+        copyCode: "Copy Code",
+        webAppUrl: "Web App URL",
+        webAppUrlHint: "URL from Google Apps Script deployment",
+        googleSheetStatusInfo: "Status: Google Sheet not configured yet",
+        totalRevenue: "Total Revenue",
+        totalOrders: "Total Orders",
+        completedOrders: "Paid",
+        pendingOrders: "New",
+        statusAnalytics: "Order Status Analytics",
+        settings: "Settings",
+        deleteSelected: "Delete Selected",
+        logs: "Logs",
+        logTime: "Time",
+        logAction: "Action",
+        logDetails: "Details"
       }
     };
-    
+
     let currentLang = 'ms';
-    // ... switchLanguage function (same) ...
+    // ... switchLanguage ...
+
     function switchLanguage(lang) {
       currentLang = lang;
+      
       document.getElementById('langMs').classList.toggle('active', lang === 'ms');
       document.getElementById('langEn').classList.toggle('active', lang === 'en');
-      // Update basic texts via data-lang attributes
+      
       document.querySelectorAll('[data-lang]').forEach(element => {
         const key = element.getAttribute('data-lang');
-        if (translations[lang] && translations[lang][key]) {
+        if (translations[lang][key]) {
           element.textContent = translations[lang][key];
         }
       });
-      // Update dropdown placeholders
+
+      if (lang === 'ms') {
+        // document.getElementById('headerTitle').textContent = 'Kedai Buku Sekolah'; // Can uncomment if needed dynamically
+        // document.getElementById('headerSubtitle').textContent = 'Sistem Jualan Buku Sekolah';
+      } else {
+        // document.getElementById('headerTitle').textContent = 'School Book Shop';
+        // document.getElementById('headerSubtitle').textContent = 'School Book Shop System';
+      }
+
       const classSelect = document.getElementById('studentClass');
-      if (classSelect && classSelect.options.length > 0) classSelect.options[0].text = translations[lang].selectClass;
-      const pkgSelect = document.getElementById('packageSelect');
-      if (pkgSelect && pkgSelect.options.length > 0) pkgSelect.options[0].text = translations[lang].selectPackage;
-      updatePaymentOptions();
+      if (classSelect && classSelect.options.length > 0) {
+        classSelect.options[0].text = translations[lang].selectClass;
+      }
+
+      const packageSelect = document.getElementById('packageSelect');
+      if (packageSelect && packageSelect.options.length > 0) {
+        packageSelect.options[0].text = translations[lang].selectPackage;
+      }
+
+      const paymentSelect = document.getElementById('paymentMethod');
+      if (paymentSelect) {
+        // Reset options based on config, but keep language sync
+        updatePaymentOptions();
+      }
     }
 
+    // Default Firebase Config
     const defaultFirebaseConfig = {
       apiKey: "AIzaSyCtELiZ5eJUCoC1IaGAYIxkpaEZcE5qN2E",
       authDomain: "eshop-1eb35.firebaseapp.com",
@@ -825,20 +1176,29 @@
 
     let db;
     let auth;
+    const firebaseConfig = getFirebaseConfig();
     try {
-      firebase.initializeApp(getFirebaseConfig());
+      firebase.initializeApp(firebaseConfig);
       db = firebase.firestore();
-      auth = firebase.auth();
-    } catch (error) { console.error("Firebase init error:", error); }
+      auth = firebase.auth(); // Initialize Auth
+    } catch (error) {
+      console.error("Firebase init error:", error);
+    }
 
     // Global Vars
     let allItems = [];
     let allPackages = [];
     let allClasses = [];
     let allFees = [];
-    let cart = {}; 
+    let cart = {}; // Shared cart for Items AND Fees
+    let currentEditItemId = null;
+    let currentEditFeeId = null;
     let currentOrderData = {};
+    let loadedOrders = {}; // Cache for admin orders
+    let foundOrdersMap = {}; 
     let adminOrdersData = [];
+    
+    // TAMBAHAN: Variable global untuk tetapan pembayaran
     let paymentConfig = { cash: true, online: true };
 
     // --- HELPER FUNCTIONS ---
@@ -853,187 +1213,100 @@
       }, 3000);
     }
     
-    // ... Confirm Modal Logic (Same) ...
     let confirmCallback = null;
     function showConfirm(msg, callback) {
         document.getElementById('confirmMessage').textContent = msg;
         document.getElementById('confirmationModal').classList.remove('hidden');
-        document.getElementById('confirmationModal').classList.add('flex');
+        document.getElementById('confirmationModal').classList.add('flex'); // Ensure flex is added
         confirmCallback = callback;
     }
+
     function closeConfirm() {
         document.getElementById('confirmationModal').classList.add('hidden');
         document.getElementById('confirmationModal').classList.remove('flex');
         confirmCallback = null;
     }
-    function executeConfirm() { if(confirmCallback) confirmCallback(); closeConfirm(); }
+
+    function executeConfirm() {
+        if(confirmCallback) confirmCallback();
+        closeConfirm();
+    }
 
     function generateShortId() {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         let result = '';
-        for (let i = 0; i < 4; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
+        for (let i = 0; i < 4; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
         return result;
     }
 
     function showSection(sectionId) {
-      document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+      const sections = document.querySelectorAll('.section');
+      sections.forEach(section => section.classList.remove('active'));
       const targetSection = document.getElementById(sectionId);
       if (targetSection) targetSection.classList.add('active');
     }
 
-    // --- UPDATED LOADING FUNCTIONS FOR RESPONSIVE UI ---
-
-    function loadItemsForShopping() {
-      const container = document.getElementById('shoppingItemsContainer');
-      if(!container) return;
-      container.innerHTML = '';
-      
-      allItems.forEach(item => {
-        const qty = cart[item.id] ? cart[item.id].quantity : 0;
-        const activeClass = qty > 0 ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50' : 'border-gray-200 bg-white';
-        
-        container.innerHTML += `
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-4 rounded-lg border ${activeClass} transition-all shadow-sm">
-            <div class="flex-1 mb-3 sm:mb-0">
-                <div class="font-bold text-gray-800 text-sm md:text-base mb-1">${item.name}</div>
-                <div class="text-primary font-bold text-sm">RM ${item.price.toFixed(2)}</div>
-            </div>
-            <div class="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto bg-gray-50 sm:bg-transparent p-2 sm:p-0 rounded-lg">
-                <div class="font-medium text-gray-500 text-xs sm:hidden uppercase tracking-wider">Kuantiti</div>
-                <div class="flex items-center bg-white rounded-lg border border-gray-300 shadow-sm">
-                    <button onclick="changeQty('${item.id}', -1)" class="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-l-lg transition-colors active:bg-gray-200">
-                        <i class="fas fa-minus text-xs"></i>
-                    </button>
-                    <input type="number" id="qty-${item.id}" value="${qty}" class="w-12 text-center text-base font-bold border-x border-gray-300 py-1 focus:outline-none h-10" readonly>
-                    <button onclick="changeQty('${item.id}', 1)" class="w-10 h-10 flex items-center justify-center text-blue-600 hover:bg-blue-50 rounded-r-lg transition-colors active:bg-blue-100">
-                        <i class="fas fa-plus text-xs"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-        `;
-      });
-    }
-
-    function changeQty(itemId, delta) {
-        const input = document.getElementById(`qty-${itemId}`);
-        if(input) {
-            let newVal = parseInt(input.value || 0) + delta;
-            if(newVal < 0) newVal = 0;
-            input.value = newVal;
-            updateCartItem(itemId, newVal);
-        }
-    }
-
-    function loadFeesForShopping() {
-      const container = document.getElementById('feesListContainer');
-      if(!container) return;
-      container.innerHTML = '';
-      
-      allFees.forEach(fee => {
-        const isSelected = !!cart[fee.id];
-        const activeClass = isSelected ? 'border-green-500 ring-1 ring-green-500 bg-green-50' : 'border-gray-200 bg-white';
-        const btnClass = isSelected ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-green-100 text-green-600 hover:bg-green-200';
-        const btnIcon = isSelected ? 'fa-minus' : 'fa-plus';
-        const btnText = isSelected ? 'Buang' : 'Tambah';
-        
-        container.innerHTML += `
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-4 rounded-lg border ${activeClass} transition-all shadow-sm">
-            <div class="flex-1 mb-3 sm:mb-0">
-                <div class="font-bold text-gray-800 text-sm md:text-base mb-1">${fee.name}</div>
-                <div class="text-xs text-gray-500 mb-1">${fee.description || ''}</div>
-                <div class="text-green-700 font-bold text-sm">RM ${fee.amount.toFixed(2)}</div>
-            </div>
-            <div class="flex justify-end w-full sm:w-auto">
-                 <button onclick="toggleFeeInCart('${fee.id}')" 
-                      class="px-5 py-2.5 rounded-lg font-bold text-xs md:text-sm transition-all shadow-sm flex items-center gap-2 ${btnClass}">
-                    <i class="fas ${btnIcon}"></i> ${btnText}
-                </button>
-            </div>
-        </div>
-        `;
-      });
-    }
-
-    // --- EXISTING LOGIC REMAINS THE SAME ---
-
-    function updateCartItem(itemId, quantity) {
-      const qty = parseInt(quantity) || 0;
-      const item = allItems.find(i => i.id === itemId);
-      if (!item) return;
-      if (qty > 0) {
-        cart[itemId] = { name: item.name, price: item.price, quantity: qty };
-      } else {
-        delete cart[itemId];
-      }
-      // Re-render handled by changeQty usually, but if called directly we might need to refresh UI class
-      const row = document.getElementById(`qty-${itemId}`)?.closest('.border');
-      if(row) {
-          if(qty > 0) {
-              row.classList.remove('border-gray-200', 'bg-white');
-              row.classList.add('border-blue-500', 'ring-1', 'ring-blue-500', 'bg-blue-50');
-          } else {
-              row.classList.add('border-gray-200', 'bg-white');
-              row.classList.remove('border-blue-500', 'ring-1', 'ring-blue-500', 'bg-blue-50');
-          }
-      }
-      updateCartDisplay();
-    }
-
-    function toggleFeeInCart(feeId) {
-      const fee = allFees.find(f => f.id === feeId);
-      if (!fee) return;
-      if (cart[feeId]) {
-        delete cart[feeId];
-      } else {
-        cart[feeId] = { name: fee.name, price: fee.amount, quantity: 1, type: 'fee' };
-      }
-      loadFeesForShopping(); // Re-render to show active state
-      updateCartDisplay();
-    }
-    
-    // ... Other functions (loadClasses, loadItems, etc.) remain unchanged ...
-    // ... For brevity, including essential init and navigation ...
-
+    // --- INITIALIZATION ---
     document.addEventListener('DOMContentLoaded', async () => {
+        // Show landing page by default
         document.getElementById('landingPage').classList.remove('hidden');
         document.getElementById('userInterface').classList.add('hidden');
         document.getElementById('adminDashboard').classList.add('hidden');
         
-        loadClasses(); loadItems(); loadPackages(); loadFees(); loadPaymentSettings();
+        // Load Public Data immediately
+        loadClasses(); 
+        loadItems(); 
+        loadPackages(); 
+        loadFees();
+        loadPaymentSettings(); // Panggil fungsi ini
 
         const pkgSelect = document.getElementById('packageSelect');
         if (pkgSelect) {
             pkgSelect.addEventListener('change', (e) => {
-                const pkgId = e.target.value;
-                if (!pkgId) return;
-                const pkg = allPackages.find(p => p.id === pkgId);
-                if (!pkg || !pkg.items) return;
-                
-                // Clear items but keep fees
-                const existingFees = {};
-                Object.keys(cart).forEach(k => { if(cart[k].type === 'fee') existingFees[k] = cart[k]; });
-                cart = { ...existingFees }; 
-                
-                pkg.items.forEach(pi => {
-                    const item = allItems.find(i => i.id === pi.itemId);
-                    if (item) cart[item.id] = { name: item.name, price: item.price, quantity: pi.qty || 1 };
-                });
-                loadItemsForShopping();
-                updateCartDisplay();
-                showToast(currentLang === 'ms' ? 'Pakej dimuatkan!' : 'Package loaded!', 'success');
+            const pkgId = e.target.value;
+            if (!pkgId) return;
+            const pkg = allPackages.find(p => p.id === pkgId);
+            if (!pkg || !pkg.items) return;
+            
+            const existingFees = {};
+            Object.keys(cart).forEach(k => {
+                if(cart[k].type === 'fee') existingFees[k] = cart[k];
+            });
+            cart = { ...existingFees }; 
+            pkg.items.forEach(pi => {
+                const item = allItems.find(i => i.id === pi.itemId);
+                if (item) {
+                cart[item.id] = { name: item.name, price: item.price, quantity: pi.qty || 1 };
+                }
+            });
+            loadItemsForShopping();
+            updateCartDisplay();
+            showToast(currentLang === 'ms' ? 'Pakej dimuatkan!' : 'Package loaded!', 'success');
+            });
+        }
+        
+        // Auth check
+        if (auth) {
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    console.log("Admin logged in: " + user.email);
+                } else {
+                    console.log("No user logged in");
+                }
             });
         }
     });
 
-    // ... Rest of the original script logic (Auth, Admin, Orders, PDF etc) ...
-    // ... Copying key navigation functions to ensure it works ...
-
+    // --- NAVIGASI BARU: RETURN TO LANDING PAGE ---
     function returnToLandingPage() {
         document.getElementById('userInterface').classList.add('hidden');
         document.getElementById('adminDashboard').classList.add('hidden');
         document.getElementById('landingPage').classList.remove('hidden');
         resetOrderForm();
+        const searchInput = document.getElementById('adminSearchInput');
+        if(searchInput) searchInput.value = '';
     }
 
     function openParentPanel() {
@@ -1041,7 +1314,113 @@
         document.getElementById('userInterface').classList.remove('hidden');
         showSection('orderSection');
     }
-    
+
+    function checkAdminStatus() {
+        const user = auth.currentUser;
+        if (user) {
+            // Already logged in
+            loginSuccess(user);
+        } else {
+            // Show login modal
+            openAdminLogin();
+        }
+    }
+
+    function openAdminLogin() {
+        document.getElementById('adminLoginModal').classList.remove('hidden');
+        document.getElementById('adminLoginModal').classList.add('flex');
+    }
+
+    function closeAdminLogin() {
+        document.getElementById('adminLoginModal').classList.add('hidden');
+        document.getElementById('adminLoginModal').classList.remove('flex');
+    }
+
+    function togglePasswordVisibility() {
+        const passwordInput = document.getElementById('adminPassword');
+        const toggleIcon = document.getElementById('passwordToggleIcon');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    }
+
+    // --- AUTH FUNCTIONS ---
+
+    function verifyAdminLogin() {
+        const email = document.getElementById('adminEmail').value;
+        const password = document.getElementById('adminPassword').value;
+        const loginBtn = document.getElementById('adminLoginBtn');
+
+        if (!email || !password) {
+            showToast("Sila masukkan emel dan kata laluan", "error");
+            return;
+        }
+
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+
+        auth.signInWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                // Signed in
+                const user = userCredential.user;
+                loginSuccess(user);
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<span data-lang="login">Log Masuk</span>';
+            })
+            .catch((error) => {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                console.error("Login error:", errorCode, errorMessage);
+                
+                let displayError = "Ralat Log Masuk";
+                if (errorCode === 'auth/wrong-password') displayError = "Kata laluan salah.";
+                if (errorCode === 'auth/user-not-found') displayError = "Emel tidak dijumpai.";
+                if (errorCode === 'auth/invalid-email') displayError = "Format emel tidak sah.";
+                
+                showToast(displayError, "error");
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<span data-lang="login">Log Masuk</span>';
+            });
+    }
+
+    function loginSuccess(user) {
+        closeAdminLogin();
+        document.getElementById('landingPage').classList.add('hidden');
+        document.getElementById('userInterface').classList.add('hidden');
+        document.getElementById('adminDashboard').classList.remove('hidden');
+        
+        // Show Admin Email
+        const emailDisplay = document.getElementById('adminEmailDisplay');
+        if (emailDisplay && user) {
+            emailDisplay.textContent = user.email;
+        }
+
+        loadAdminData();
+        showToast("Selamat Datang ke Panel Admin", "success");
+    }
+
+    function logoutAdmin() {
+        auth.signOut().then(() => {
+            document.getElementById('adminDashboard').classList.add('hidden');
+            document.getElementById('landingPage').classList.remove('hidden');
+            document.getElementById('adminPassword').value = ''; 
+            showToast("Log Keluar Berjaya", "info");
+        }).catch((error) => {
+            console.error("Sign out error", error);
+        });
+    }
+
+    function closeAdminDashboard() {
+        document.getElementById('adminDashboard').classList.add('hidden');
+        document.getElementById('landingPage').classList.remove('hidden');
+    }
+
     function proceedToStep2() {
       const parentName = document.getElementById('parentName').value.trim();
       const parentPhone = document.getElementById('parentPhone').value.trim();
@@ -1053,6 +1432,7 @@
         showToast(currentLang === 'ms' ? 'Sila isi semua ruangan' : 'Please fill in all fields', 'error');
         return;
       }
+
       currentOrderData = { parentName, parentPhone, parentEmail, studentName, studentClass };
       document.getElementById('step1').style.display = 'none';
       document.getElementById('step2').classList.remove('hidden');
@@ -1069,11 +1449,12 @@
       if (cartKeys.length === 0) {
         showToast(currentLang === 'ms' ? 'Troli masih kosong' : 'Cart is empty', 'info');
       }
+      
       document.getElementById('step2').classList.add('hidden');
       document.getElementById('step3').classList.remove('hidden');
       loadFeesForShopping();
       updateCartDisplay(); 
-      updatePaymentOptions(); 
+      updatePaymentOptions(); // Kemaskini dropdown pembayaran
     }
 
     function backToStep2() {
@@ -1081,37 +1462,8 @@
       document.getElementById('step2').classList.remove('hidden');
       updateCartDisplay();
     }
-
-    function updateCartDisplay() {
-      const containers = ['cartItems2', 'cartItems3'];
-      const totalDisplays = document.querySelectorAll('.grandTotalDisplay');
-      let total = 0;
-      let html = '';
-      const cartKeys = Object.keys(cart);
-      if (cartKeys.length === 0) {
-        html = `<p class="text-gray-500 text-center py-8"><i class="fas fa-shopping-cart text-4xl mb-3 block"></i>${translations[currentLang].noItems}</p>`;
-      } else {
-        cartKeys.forEach(itemId => {
-          const item = cart[itemId];
-          const subtotal = item.price * item.quantity;
-          total += subtotal;
-          const typeLabel = item.type === 'fee' ? `<span class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded ml-2">Yuran</span>` : '';
-          html += `
-            <div class="flex justify-between text-sm mb-3 pb-3 border-b border-gray-200">
-              <div class="flex-1 pr-2">
-                <div class="font-semibold text-gray-800">${item.name} ${typeLabel}</div>
-                <div class="text-gray-600 text-xs mt-1">${item.quantity} × RM ${item.price.toFixed(2)}</div>
-              </div>
-              <div class="font-bold text-primary">RM ${subtotal.toFixed(2)}</div>
-            </div>
-          `;
-        });
-      }
-      containers.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = html; });
-      totalDisplays.forEach(el => { el.textContent = total.toFixed(2); });
-    }
-
-    // --- ADMIN & DATA LOADING (Condensed for response limits, functional logic maintained) ---
+    
+    // ... load functions ...
     async function loadClasses() {
       if(!db) return;
       try {
@@ -1156,119 +1508,1064 @@
         allFees.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       } catch (error) { console.error("Error loading fees", error); }
     }
-    
-    // ... Previous Admin Functions (loadAdminData, renderOrders, etc) ...
-    // Placeholder to keep code valid if user tries to login
-    function checkAdminStatus() { const user = auth.currentUser; if (user) loginSuccess(user); else openAdminLogin(); }
-    function openAdminLogin() { document.getElementById('adminLoginModal').classList.remove('hidden'); document.getElementById('adminLoginModal').classList.add('flex'); }
-    function closeAdminLogin() { document.getElementById('adminLoginModal').classList.add('hidden'); document.getElementById('adminLoginModal').classList.remove('flex'); }
-    function verifyAdminLogin() {
-        const email = document.getElementById('adminEmail').value;
-        const password = document.getElementById('adminPassword').value;
-        auth.signInWithEmailAndPassword(email, password).then((u) => loginSuccess(u.user)).catch((e) => showToast(e.message, "error"));
-    }
-    function loginSuccess(user) {
-        closeAdminLogin();
-        document.getElementById('landingPage').classList.add('hidden');
-        document.getElementById('userInterface').classList.add('hidden');
-        document.getElementById('adminDashboard').classList.remove('hidden');
-        loadAdminData();
-    }
-    function logoutAdmin() { auth.signOut().then(() => returnToLandingPage()); }
-    function loadAdminData() { loadOrders(); loadItemsAdmin(); loadPackagesAdmin(); loadClasses(); loadFeesAdmin(); loadPaymentSettingsAdmin(); }
-    
-    // Stub Admin functions to prevent ReferenceErrors if clicked
-    function showAdminTab(t){ document.querySelectorAll('.admin-tab-content').forEach(d => d.classList.add('hidden')); document.getElementById(t).classList.remove('hidden'); if(t==='ordersTab') loadOrders(); }
-    async function loadOrders(){ /* Full implementation in prev file, assumed present */ }
-    function loadItemsAdmin(){ /* Full implementation in prev file */ }
-    function loadPackagesAdmin(){ /* Full implementation in prev file */ }
-    function loadFeesAdmin(){ /* Full implementation in prev file */ }
-    async function loadPaymentSettings(){ 
-        if(!db) return;
-        try { const d = await db.collection('settings').doc('payment_methods').get(); if(d.exists) { paymentConfig.cash = d.data().cash !== false; paymentConfig.online = d.data().online !== false; } } catch(e){}
-    }
-    function updatePaymentOptions() {
-        const select = document.getElementById('paymentMethod');
-        if(!select) return;
-        select.innerHTML = '';
-        if(paymentConfig.cash) select.add(new Option(translations[currentLang].cash, 'Cash'));
-        if(paymentConfig.online) select.add(new Option(translations[currentLang].online, 'Online'));
-        const btn = document.getElementById('submitOrderBtn');
-        if(select.options.length === 0) { select.add(new Option("-- Closed --")); select.disabled=true; if(btn) btn.disabled=true; }
-        else { select.disabled=false; if(btn) btn.disabled=false; }
-    }
-    // ... Additional Admin logic needed for full app functionality (delete, add, etc) ...
-    // Ensure critical logic from previous prompt is retained in real usage.
 
-    // Payment Settings Logic (Admin)
-    async function loadPaymentSettingsAdmin() {
-        await loadPaymentSettings();
-        const tc = document.getElementById('toggleCash'); if(tc) tc.checked = paymentConfig.cash;
-        const to = document.getElementById('toggleOnline'); if(to) to.checked = paymentConfig.online;
-    }
-    async function savePaymentSettings() {
-        if(!db) return;
-        try {
-            await db.collection('settings').doc('payment_methods').set({
-                cash: document.getElementById('toggleCash').checked,
-                online: document.getElementById('toggleOnline').checked
-            });
-            loadPaymentSettingsAdmin(); showToast('Saved', 'success');
-        } catch(e){ console.error(e); }
-    }
-    function toggleSelectAll(s, c) { document.querySelectorAll('.'+c).forEach(cb => cb.checked = s.checked); }
-    function getSelectedIds(c) { return Array.from(document.querySelectorAll('.'+c+':checked')).map(cb => cb.value); }
-
-    // Re-inject critical Admin functions for standalone validity
-    async function loadItemsAdmin() {
-        if(!db) return; const b = document.getElementById('itemsAdminTableBody'); b.innerHTML=''; allItems.forEach(i => b.innerHTML+=`<tr><td class="p-3 text-center"><input type="checkbox" class="item-checkbox custom-checkbox" value="${i.id}"></td><td class="p-3">${i.name}</td><td class="p-3 text-right">${i.price.toFixed(2)}</td><td class="p-3 text-center"><button onclick="deleteItem('${i.id}')" class="text-red-500"><i class="fas fa-trash"></i></button></td></tr>`);
-    }
-    async function loadFeesAdmin() {
-        if(!db) return; const b = document.getElementById('feesAdminTableBody'); b.innerHTML=''; allFees.forEach(f => b.innerHTML+=`<tr><td class="p-3 text-center"><input type="checkbox" class="fee-checkbox custom-checkbox" value="${f.id}"></td><td class="p-3">${f.name}</td><td class="p-3 text-right">${f.amount.toFixed(2)}</td><td class="p-3">${f.description}</td><td class="p-3 text-center"><button onclick="deleteFee('${f.id}')" class="text-red-500"><i class="fas fa-trash"></i></button></td></tr>`);
-    }
-    async function addItem() { const n=document.getElementById('newItemName').value, p=parseFloat(document.getElementById('newItemPrice').value); if(n&&p){ await db.collection('book_items').add({name:n, price:p}); document.getElementById('addItemForm').classList.add('hidden'); loadItemsAdmin(); loadItems(); } }
-    async function deleteItem(id) { showConfirm('Delete?', async()=>{ await db.collection('book_items').doc(id).delete(); loadItemsAdmin(); loadItems(); }); }
-    function showAddItemForm() { document.getElementById('addItemForm').classList.remove('hidden'); }
-    function hideAddItemForm() { document.getElementById('addItemForm').classList.add('hidden'); }
-    // ... Similar for Fees/Packages/Orders ...
-    // Essential stubs for Submit Order
-    async function submitOrder() {
-        if(!db) return;
-        const submitBtn = document.getElementById('submitOrderBtn');
-        submitBtn.disabled = true; submitBtn.innerHTML = 'Processing...';
-        let total = 0; Object.values(cart).forEach(i => total += i.price * i.quantity);
-        try {
-            const order = { ...currentOrderData, items: cart, total, status: 'New', timestamp: firebase.firestore.FieldValue.serverTimestamp(), paymentMethod: document.getElementById('paymentMethod').value };
-            await db.collection('book_orders').add(order);
-            showToast('Order Sent!', 'success'); resetOrderForm();
-        } catch(e) { console.error(e); showToast('Error', 'error'); }
-        submitBtn.disabled = false; submitBtn.innerHTML = 'Hantar Tempahan';
-    }
-    function resetOrderForm() {
-        document.getElementById('parentName').value = ''; document.getElementById('studentName').value = '';
-        cart = {}; document.getElementById('step3').classList.add('hidden'); document.getElementById('step2').classList.add('hidden');
-        document.getElementById('step1').style.display = 'block'; updateCartDisplay();
-    }
     function updatePackageSelector() {
       const select = document.getElementById('packageSelect');
       if(!select) return;
       select.innerHTML = `<option value="">${translations[currentLang].selectPackage}</option>`;
       allPackages.forEach(p => select.innerHTML += `<option value="${p.id}">${p.name}</option>`);
     }
+
+    function loadItemsForShopping() {
+      const tbody = document.getElementById('itemsTableBody');
+      if(!tbody) return;
+      tbody.innerHTML = '';
+      allItems.forEach(item => {
+        const currentQty = cart[item.id] ? cart[item.id].quantity : 0;
+        tbody.innerHTML += `
+          <tr class="item-row">
+            <td class="px-4 py-3 md:py-4 text-gray-800 font-medium">${item.name || 'Unnamed'}</td>
+            <td class="px-4 py-3 md:py-4 text-right text-gray-800 font-semibold">${(item.price || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 md:py-4 text-center">
+              <input type="number" min="0" value="${currentQty}" 
+                     class="w-16 md:w-24 px-2 md:px-3 py-1.5 md:py-2 border-2 border-gray-300 rounded-lg text-center font-semibold input-focus focus:ring-2 focus:ring-blue-500 text-sm md:text-base"
+                     onchange="updateCartItem('${item.id}', this.value)">
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function loadFeesForShopping() {
+      const tbody = document.getElementById('feesTableBody');
+      if(!tbody) return;
+      tbody.innerHTML = '';
+      allFees.forEach(fee => {
+        const isSelected = !!cart[fee.id];
+        tbody.innerHTML += `
+          <tr class="item-row ${isSelected ? 'bg-green-50' : ''}">
+            <td class="px-4 py-3 md:py-4 text-gray-800 font-medium">
+              ${fee.name}
+              <div class="text-xs text-gray-500">${fee.description || ''}</div>
+            </td>
+            <td class="px-4 py-3 md:py-4 text-right text-gray-800 font-semibold">${(fee.amount || 0).toFixed(2)}</td>
+            <td class="px-4 py-3 md:py-4 text-center">
+              <button onclick="toggleFeeInCart('${fee.id}')" 
+                      class="px-3 md:px-4 py-1.5 md:py-2 rounded-lg font-bold text-xs md:text-sm transition-all shadow-sm ${isSelected ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-green-100 text-green-600 hover:bg-green-200'}">
+                ${isSelected ? '<i class="fas fa-minus mr-1"></i> Remove' : '<i class="fas fa-plus mr-1"></i> Add'}
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function toggleFeeInCart(feeId) {
+      const fee = allFees.find(f => f.id === feeId);
+      if (!fee) return;
+      if (cart[feeId]) {
+        delete cart[feeId];
+      } else {
+        cart[feeId] = {
+          name: fee.name,
+          price: fee.amount,
+          quantity: 1,
+          type: 'fee'
+        };
+      }
+      loadFeesForShopping();
+      updateCartDisplay();
+    }
+
+    function updateCartItem(itemId, quantity) {
+      const qty = parseInt(quantity) || 0;
+      const item = allItems.find(i => i.id === itemId);
+      if (!item) return;
+      if (qty > 0) {
+        cart[itemId] = { name: item.name, price: item.price, quantity: qty };
+      } else {
+        delete cart[itemId];
+      }
+      updateCartDisplay();
+    }
+
+    function updateCartDisplay() {
+      const containers = ['cartItems2', 'cartItems3'];
+      const totalDisplays = document.querySelectorAll('.grandTotalDisplay');
+
+      let total = 0;
+      let html = '';
+
+      const cartKeys = Object.keys(cart);
+      if (cartKeys.length === 0) {
+        html = `<p class="text-gray-500 text-center py-8"><i class="fas fa-shopping-cart text-4xl mb-3 block"></i>${translations[currentLang].noItems}</p>`;
+      } else {
+        cartKeys.forEach(itemId => {
+          const item = cart[itemId];
+          const subtotal = item.price * item.quantity;
+          total += subtotal;
+          const typeLabel = item.type === 'fee' ? `<span class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded ml-2">Yuran</span>` : '';
+          html += `
+            <div class="flex justify-between text-sm mb-3 pb-3 border-b border-gray-200">
+              <div class="flex-1 pr-2">
+                <div class="font-semibold text-gray-800">${item.name} ${typeLabel}</div>
+                <div class="text-gray-600 text-xs mt-1">${item.quantity} × RM ${item.price.toFixed(2)}</div>
+              </div>
+              <div class="font-bold text-primary">RM ${subtotal.toFixed(2)}</div>
+            </div>
+          `;
+        });
+      }
+
+      containers.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = html;
+      });
+
+      totalDisplays.forEach(el => {
+        el.textContent = total.toFixed(2);
+      });
+    }
+
+    async function submitOrder() {
+      if(!db) { showToast("Database not ready", "error"); return; }
+      const cartKeys = Object.keys(cart);
+      if (cartKeys.length === 0) {
+        showToast(currentLang === 'ms' ? 'Sila pilih sekurang-kurangnya satu barang' : 'Please select items', 'error');
+        return;
+      }
+
+      const paymentMethod = document.getElementById('paymentMethod').value;
+      const submitBtn = document.getElementById('submitOrderBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+
+      let calculatedTotal = 0;
+      Object.values(cart).forEach(item => calculatedTotal += (item.price * item.quantity));
+
+      // Generate Short ID
+      const shortId = generateShortId();
+
+      try {
+        const orderData = {
+          ...currentOrderData,
+          items: cart,
+          paymentMethod,
+          total: calculatedTotal,
+          status: 'New',
+          shortId: shortId, // Add Short ID
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          createdAt: new Date().toISOString()
+        };
+
+        const docRef = await db.collection('book_orders').add(orderData);
+        orderData.orderId = docRef.id;
+
+        const pdfBlob = generateInvoicePDF(orderData, true);
+        await sendToGoogleSheets(orderData);
+        await sendToTelegram(orderData, pdfBlob);
+
+        const successMessage = currentLang === 'ms' ? 'Tempahan Berjaya!' : 'Order Successful!';
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm p-4';
+        modal.innerHTML = `
+          <div class="bg-white rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl animate-bounce-in mx-auto">
+            <div class="text-center mb-6">
+              <div class="bg-green-100 p-4 rounded-full inline-block mb-4"><i class="fas fa-check-circle text-green-600 text-4xl md:text-5xl"></i></div>
+              <h3 class="text-xl md:text-2xl font-bold text-green-700 mb-2">${successMessage}</h3>
+            </div>
+            <div class="bg-blue-50 rounded-xl p-4 md:p-6 mb-6 border-2 border-blue-200 space-y-3">
+              <div class="flex justify-between"><span class="text-sm text-gray-600">ID Tempahan</span><span class="font-bold text-blue-700 font-mono text-lg md:text-xl">${shortId}</span></div>
+              <div class="flex justify-between"><span class="text-sm text-gray-600">Jumlah</span><span class="font-bold text-lg md:text-xl text-blue-700">RM ${calculatedTotal.toFixed(2)}</span></div>
+            </div>
+            <div class="flex flex-col gap-3">
+              <button onclick="this.closest('.fixed').remove(); resetOrderForm();" class="w-full px-6 py-3.5 bg-blue-600 text-white rounded-xl font-bold text-sm md:text-base">Tempahan Baru</button>
+              <button onclick="this.closest('.fixed').remove(); showSection('statusSection'); document.getElementById('statusPhone').value = '${currentOrderData.parentPhone}';" class="w-full px-6 py-3.5 bg-green-600 text-white rounded-xl font-bold text-sm md:text-base">Semak Status</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+
+      } catch (error) {
+        console.error("Submit error:", error);
+        showToast("Error submitting order", 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Hantar Tempahan';
+      }
+    }
+
+    function generateInvoicePDF(orderData, returnBlob = false) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      const displayId = orderData.shortId || orderData.orderId.substring(0,8);
+      // Format tarikh (DD/MM/YYYY)
+      const dateObj = orderData.timestamp ? new Date(orderData.timestamp.seconds * 1000) : new Date();
+      const dateStr = dateObj.toLocaleDateString('en-GB'); // DD/MM/YYYY
+
+      // --- HEADER SEBELAH KIRI (INVOIS INFO) ---
+      doc.setFontSize(22); 
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(0, 0, 0); 
+      doc.text('INVOIS', 15, 20);
+
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      doc.text(`No. Rujukan: #${displayId}`, 15, 28);
+      doc.text(`Tarikh: ${dateStr}`, 15, 33);
+
+      // --- SEKSYEN KANAN (INFO SEKOLAH) ---
+      const pageWidth = doc.internal.pageSize.width;
+      const rightMargin = 15;
+      let yPosRight = 20;
+      
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.text('KEDAI BUKU SEKOLAH', pageWidth - rightMargin, yPosRight, { align: 'right' });
+      yPosRight += 5;
+      doc.text('SK Masjid Tanah (Integrasi)', pageWidth - rightMargin, yPosRight, { align: 'right' });
+      yPosRight += 5;
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(9);
+      doc.text('Jalan Smk. Ghafar Baba, 78300,', pageWidth - rightMargin, yPosRight, { align: 'right' });
+      yPosRight += 4;
+      doc.text('Masjid Tanah, Melaka', pageWidth - rightMargin, yPosRight, { align: 'right' });
+      yPosRight += 4;
+      doc.text('Tel: 063841244/01110020731', pageWidth - rightMargin, yPosRight, { align: 'right' });
+
+      // --- SEKSYEN KIRI (PEMBELI) ---
+      let yPosLeft = 50;
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.text('DIBERIKAN KEPADA:', 15, yPosLeft);
+      
+      yPosLeft += 6;
+      doc.setFontSize(11);
+      doc.text(orderData.parentName.toUpperCase(), 15, yPosLeft); // Nama Ibu Bapa
+      
+      // --- LOGIK PAID (SEBARIS DENGAN NAMA DI HUJUNG KANAN) ---
+      if (orderData.status === 'Paid') {
+          doc.setTextColor(220, 53, 69); // Merah
+          doc.setFontSize(16);
+          doc.setFont(undefined, 'bold');
+          // Letak di hujung kanan pada baris yPosLeft yang sama
+          doc.text("PAID", pageWidth - rightMargin, yPosLeft, { align: 'right' });
+          doc.setTextColor(0, 0, 0); // Reset warna hitam
+      }
+
+      yPosLeft += 5;
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Tel: ${orderData.parentPhone}`, 15, yPosLeft);
+      
+      yPosLeft += 6;
+      doc.text(`Pelajar: ${orderData.studentName.toUpperCase()}`, 15, yPosLeft);
+      yPosLeft += 5;
+      doc.text(`Kelas: ${orderData.studentClass}`, 15, yPosLeft);
+
+      // --- TABLE DATA ---
+      const tableData = [];
+      Object.keys(orderData.items).forEach(k => {
+        const i = orderData.items[k];
+        const displayName = i.type === 'fee' ? `[YURAN] ${i.name}` : i.name;
+        tableData.push([
+            displayName, 
+            i.quantity, 
+            `RM ${i.price.toFixed(2)}`, 
+            `RM ${(i.price * i.quantity).toFixed(2)}`
+        ]);
+      });
+      
+      // Baris Jumlah Keseluruhan
+      tableData.push([
+          { content: 'JUMLAH KESELURUHAN', colSpan: 3, styles: { halign: 'right', fontStyle: 'bold' } },
+          { content: `RM ${orderData.total.toFixed(2)}`, styles: { fontStyle: 'bold' } }
+      ]);
+
+      doc.autoTable({
+        startY: yPosLeft + 10,
+        head: [['PERKARA / ITEM', 'KUANTITI', 'HARGA SEUNIT', 'JUMLAH']],
+        body: tableData,
+        theme: 'plain', // Tema ringkas seperti contoh
+        styles: { 
+            fontSize: 9, 
+            cellPadding: 3,
+            lineColor: [200, 200, 200],
+            lineWidth: 0.1,
+            textColor: [0,0,0]
+        },
+        headStyles: { 
+            fillColor: [240, 240, 240], 
+            textColor: [0, 0, 0],
+            fontStyle: 'bold',
+            halign: 'left',
+            lineWidth: 0.1,
+            lineColor: [150, 150, 150]
+        },
+        columnStyles: {
+            0: { cellWidth: 'auto' }, 
+            1: { cellWidth: 25, halign: 'center' }, 
+            2: { cellWidth: 35, halign: 'right' }, 
+            3: { cellWidth: 35, halign: 'right' } 
+        }
+      });
+      
+      let finalY = doc.lastAutoTable.finalY + 15;
+
+      // MAKLUMAT PEMBAYARAN TELAH DIBUANG DARI SINI
+      
+      finalY += 10;
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text('Resit ini dijana secara automatik oleh Sistem Kedai Buku Sekolah.', 15, finalY);
+
+      if (returnBlob) return doc.output('blob');
+      doc.save(`Invoice_${displayId}.pdf`);
+    }
+
+    // ... sendToGoogleSheets, sendToTelegram, resetOrderForm, checkStatus ...
+    async function sendToGoogleSheets(data) {
+        if(!db) return;
+        try {
+            const doc = await db.collection('settings').doc('google_sheet_settings').get();
+            if(doc.exists && doc.data().webAppUrl) {
+                // Use Short ID for google sheet too
+                const sheetData = { ...data, orderId: data.shortId || data.orderId, items: data.items };
+                await fetch(doc.data().webAppUrl, { method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(sheetData) });
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    async function sendToTelegram(data, pdfBlob) {
+        if(!db) return;
+        try {
+            const doc = await db.collection('settings').doc('telegram_settings').get();
+            if(doc.exists && doc.data().botToken && doc.data().chatId) {
+                const { botToken, chatId } = doc.data();
+                const displayId = data.shortId || data.orderId.substring(0,8);
+                let msg = `🔔 *NEW ORDER*\nID: ${displayId}\nStudent: ${data.studentName}\nTotal: RM ${data.total.toFixed(2)}`;
+                
+                await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'Markdown' })
+                });
+
+                const formData = new FormData();
+                formData.append('chat_id', chatId);
+                formData.append('document', pdfBlob, `Invoice_${displayId}.pdf`);
+                await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, { method: 'POST', body: formData });
+            }
+        } catch(e) { console.error(e); }
+    }
+
+    function resetOrderForm() {
+      document.getElementById('parentName').value = '';
+      document.getElementById('studentName').value = '';
+      cart = {};
+      document.getElementById('step3').classList.add('hidden');
+      document.getElementById('step2').classList.add('hidden');
+      document.getElementById('step1').style.display = 'block';
+      const btn = document.getElementById('submitOrderBtn');
+      btn.disabled = false; btn.innerHTML = 'Hantar Tempahan';
+      updateCartDisplay();
+    }
+    
+    // Updated checkStatus function
+    async function checkStatus() {
+        if(!db) return;
+        const phone = document.getElementById('statusPhone').value;
+        const resDiv = document.getElementById('statusResults');
+        resDiv.innerHTML = 'Loading...';
+        
+        // Clear previous cache
+        foundOrdersMap = {};
+
+        const snap = await db.collection('book_orders').where('parentPhone', '==', phone).get();
+        if(snap.empty) {
+            resDiv.innerHTML = 'Tiada tempahan.'; return;
+        }
+        
+        const statusMap = {
+            'New': 'Baru (New)',
+            'Processing': 'Dalam Proses (Processing)',
+            'Paid': 'Dibayar (Paid)'
+        };
+        
+        let html = '';
+        snap.forEach(d => {
+            const o = d.data();
+            // Cache order data for PDF generation
+            foundOrdersMap[d.id] = {id: d.id, ...o};
+            
+            const displayId = o.shortId || d.id.substring(0,8);
+            const displayStatus = statusMap[o.status] || o.status;
+            let statusColor = 'text-gray-700';
+            if(o.status === 'New') statusColor = 'text-yellow-600';
+            if(o.status === 'Processing') statusColor = 'text-blue-600';
+            if(o.status === 'Paid') statusColor = 'text-green-600';
+
+            // Check if PAID to show button
+            const downloadBtn = o.status === 'Paid' 
+                ? `<button onclick="downloadUserReceipt('${d.id}')" class="mt-3 px-4 py-2.5 bg-green-600 text-white rounded-xl text-sm font-bold shadow hover:bg-green-700 transition-all flex items-center justify-center w-full md:w-auto"><i class="fas fa-file-invoice mr-2"></i>Muat Turun Resit</button>` 
+                : '';
+
+            html += `<div class="p-4 md:p-5 border rounded-xl mb-3 bg-gray-50 shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex justify-between mb-2">
+                    <span class="font-bold text-gray-800 font-mono text-base md:text-lg">#${displayId}</span>
+                    <span class="font-bold ${statusColor} text-sm md:text-base">${displayStatus}</span>
+                </div>
+                <div class="text-sm text-gray-600 mb-2">Pelajar: <span class="font-semibold">${o.studentName}</span></div>
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end mt-1 gap-2">
+                    <div class="text-sm font-bold text-primary text-base md:text-lg">Total: RM ${o.total.toFixed(2)}</div>
+                    ${downloadBtn}
+                </div>
+            </div>`;
+        });
+        resDiv.innerHTML = html;
+    }
+
+    // New function to handle receipt download
+    function downloadUserReceipt(id) {
+        const orderData = foundOrdersMap[id];
+        if(orderData) {
+            generateInvoicePDF(orderData, false);
+        } else {
+            showToast("Ralat data resit", "error");
+        }
+    }
+
+    // ... Admin Logic (Orders, Items, Packages, Fees etc.) ...
+    
+    async function loadAdminData() {
+        if(!db) return;
+        loadOrders(); loadItemsAdmin(); loadPackagesAdmin(); loadClasses(); loadFeesAdmin();
+        loadTelegramSettings(); loadGoogleSheetSettings(); loadPaymentSettingsAdmin(); // Load untuk admin juga
+    }
+
+    function showAdminTab(tab) {
+        document.querySelectorAll('.admin-tab-content').forEach(d => d.classList.add('hidden'));
+        document.getElementById(tab).classList.remove('hidden');
+        if(tab === 'ordersTab') loadOrders();
+        if(tab === 'feesTab') loadFeesAdmin();
+        if(tab === 'analysisTab') loadAnalysisData();
+        if(tab === 'logsTab') loadLogs();
+    }
+
+    function toggleSelectAll(source, className) {
+        document.querySelectorAll('.' + className).forEach(cb => cb.checked = source.checked);
+    }
+    
+    function getSelectedIds(className) {
+        return Array.from(document.querySelectorAll('.' + className + ':checked')).map(cb => cb.value);
+    }
+
+    // --- LOGGING SYSTEM ---
+    async function logActivity(action, details, orderId = null) {
+        if(!db) return;
+        try {
+            await db.collection('system_logs').add({
+                action: action,
+                details: details,
+                orderId: orderId,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                date: new Date().toISOString()
+            });
+        } catch (e) {
+            console.error("Log error", e);
+        }
+    }
+
+    async function loadLogs() {
+        if(!db) return;
+        const tbody = document.getElementById('logsTableBody');
+        tbody.innerHTML = 'Loading...';
+        try {
+            const snap = await db.collection('system_logs').orderBy('timestamp', 'desc').limit(50).get();
+            tbody.innerHTML = '';
+            if (snap.empty) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-500">Tiada rekod aktiviti.</td></tr>';
+                return;
+            }
+            snap.forEach(doc => {
+                const log = doc.data();
+                const timeString = log.date ? new Date(log.date).toLocaleString() : '-';
+                const relatedId = log.orderId ? `<span class="bg-gray-100 px-2 py-1 rounded text-xs font-mono text-gray-600">#${log.orderId.substring(0,8)}</span>` : '-';
+                
+                let actionColor = "text-gray-700";
+                if(log.action.includes("Delete")) actionColor = "text-red-600 font-bold";
+                if(log.action.includes("Status")) actionColor = "text-blue-600 font-bold";
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">${timeString}</td>
+                        <td class="px-4 py-3">${relatedId}</td>
+                        <td class="px-4 py-3 text-sm ${actionColor}">${log.action}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700 min-w-[200px]">${log.details}</td>
+                    </tr>
+                `;
+            });
+        } catch (e) {
+            console.error(e);
+            tbody.innerHTML = 'Error loading logs.';
+        }
+    }
+
+    async function loadOrders() {
+        if(!db) return;
+        const tbody = document.getElementById('ordersTableBody');
+        tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center">Loading...</td></tr>';
+        
+        try {
+            const snap = await db.collection('book_orders').orderBy('timestamp', 'desc').limit(100).get();
+            adminOrdersData = []; // Clear current data
+            
+            snap.forEach(d => {
+                adminOrdersData.push({ id: d.id, ...d.data() });
+            });
+
+            const filterSelect = document.getElementById('adminClassFilter');
+            filterSelect.innerHTML = '<option value="">Semua Kelas</option>';
+            const uniqueClasses = [...new Set(adminOrdersData.map(o => o.studentClass))].sort();
+            uniqueClasses.forEach(c => {
+                if(c) filterSelect.innerHTML += `<option value="${c}">${c}</option>`;
+            });
+
+            renderOrders();
+        } catch(e) {
+            console.error(e);
+            tbody.innerHTML = 'Error loading orders.';
+        }
+    }
+
+    function renderOrders() {
+        const tbody = document.getElementById('ordersTableBody');
+        tbody.innerHTML = '';
+        
+        const filterClass = document.getElementById('adminClassFilter').value;
+        const searchText = document.getElementById('adminSearchInput').value.toLowerCase();
+
+        const filteredOrders = adminOrdersData.filter(o => {
+            const matchClass = filterClass ? o.studentClass === filterClass : true;
+            const s = searchText;
+            const matchSearch = !s || 
+                (o.studentName && o.studentName.toLowerCase().includes(s)) ||
+                (o.parentName && o.parentName.toLowerCase().includes(s)) ||
+                (o.parentPhone && o.parentPhone.includes(s)) ||
+                (o.shortId && o.shortId.toLowerCase().includes(s)) ||
+                (o.id && o.id.toLowerCase().includes(s));
+            
+            return matchClass && matchSearch;
+        });
+
+        if(filteredOrders.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-gray-500">Tiada tempahan dijumpai.</td></tr>';
+            return;
+        }
+
+        filteredOrders.forEach(o => {
+            let statusColor = 'text-gray-600';
+            if(o.status === 'New') statusColor = 'text-yellow-600';
+            else if(o.status === 'Processing') statusColor = 'text-blue-600';
+            else if(o.status === 'Paid') statusColor = 'text-green-600';
+
+            const displayId = o.shortId || o.id.substring(0,6);
+
+            tbody.innerHTML += `
+            <tr class="hover:bg-blue-50 transition-colors cursor-pointer" onclick="viewOrderDetails('${o.id}')">
+                <td class="p-3 text-center" onclick="event.stopPropagation()">
+                    <input type="checkbox" class="order-checkbox custom-checkbox w-5 h-5" value="${o.id}">
+                </td>
+                <td class="p-3 font-mono font-bold text-gray-700 whitespace-nowrap">#${displayId}</td>
+                <td class="p-3">
+                    <div class="font-semibold">${o.studentName}</div>
+                    <div class="text-xs text-gray-500">${o.parentName}</div>
+                </td>
+                <td class="p-3 text-sm whitespace-nowrap">${o.studentClass}</td>
+                <td class="p-3 font-bold whitespace-nowrap">RM ${o.total.toFixed(2)}</td>
+                <td class="p-3 font-bold ${statusColor} text-xs md:text-sm whitespace-nowrap">${o.status}</td>
+                <td class="p-3 flex items-center gap-2" onclick="event.stopPropagation()">
+                   <select onchange="updateStatus('${o.id}', this.value)" class="border p-1.5 rounded text-xs md:text-sm bg-white shadow-sm focus:ring-2 focus:ring-blue-500 max-w-[120px]">
+                     <option value="New" ${o.status=='New'?'selected':''}>Baru</option>
+                     <option value="Processing" ${o.status=='Processing'?'selected':''}>Proses</option>
+                     <option value="Paid" ${o.status=='Paid'?'selected':''}>Dibayar</option>
+                   </select>
+                   <button onclick="deleteOrder('${o.id}')" class="text-red-500 hover:text-red-700 transition-colors p-2" title="Padam"><i class="fas fa-trash"></i></button>
+                   <button onclick="printOrderSafe('${o.id}')" class="text-blue-600 hover:text-blue-800 transition-colors p-2" title="Cetak"><i class="fas fa-print"></i></button>
+                </td>
+            </tr>`;
+        });
+    }
+
+    function viewOrderDetails(id) {
+        const order = adminOrdersData.find(o => o.id === id);
+        if(!order) return;
+
+        const content = document.getElementById('orderDetailsContent');
+        const displayId = order.shortId || order.id;
+        
+        let itemsHtml = '<div class="space-y-3">';
+        if(order.items) {
+            Object.values(order.items).forEach(item => {
+                itemsHtml += `
+                    <div class="flex justify-between border-b pb-2">
+                        <div class="pr-2">
+                            <div class="font-medium text-sm md:text-base">${item.name}</div>
+                            <div class="text-xs text-gray-500">${item.quantity} x RM ${item.price.toFixed(2)}</div>
+                        </div>
+                        <div class="font-bold text-sm md:text-base">RM ${(item.quantity * item.price).toFixed(2)}</div>
+                    </div>
+                `;
+            });
+        }
+        itemsHtml += '</div>';
+
+        content.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-sm">
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <p class="text-gray-500 text-xs">ID Tempahan</p>
+                    <p class="font-bold font-mono text-lg text-primary">#${displayId}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <p class="text-gray-500 text-xs">Tarikh</p>
+                    <p class="font-bold">${order.timestamp ? new Date(order.timestamp.seconds * 1000).toLocaleDateString() : 'N/A'}</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-xs">Nama Murid</p>
+                    <p class="font-bold">${order.studentName}</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-xs">Kelas</p>
+                    <p class="font-bold">${order.studentClass}</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-xs">Nama Ibu Bapa</p>
+                    <p class="font-bold">${order.parentName}</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-xs">No. Telefon</p>
+                    <p class="font-bold">${order.parentPhone}</p>
+                </div>
+            </div>
+            <h4 class="font-bold text-gray-700 mb-2">Senarai Barang</h4>
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-4">
+                ${itemsHtml}
+                <div class="flex justify-between mt-4 pt-2 border-t border-gray-300">
+                    <span class="font-bold text-base md:text-lg">Jumlah Besar</span>
+                    <span class="font-bold text-lg md:text-xl text-primary">RM ${order.total.toFixed(2)}</span>
+                </div>
+            </div>
+            <div class="flex justify-between items-center bg-blue-50 p-3 rounded-lg">
+                <span class="px-3 py-1 rounded-full bg-white border border-blue-200 text-blue-800 font-bold text-xs md:text-sm shadow-sm">${order.status}</span>
+                <span class="text-xs md:text-sm text-gray-600 font-medium">${order.paymentMethod || '-'}</span>
+            </div>
+        `;
+        document.getElementById('orderDetailsModal').classList.remove('hidden');
+    }
+
+    function printOrderSafe(id) {
+        const order = adminOrdersData.find(o => o.id === id);
+        if(order) generateInvoicePDF(order, false);
+    }
+
+    async function updateStatus(id, status) {
+        if(!db) return;
+        await db.collection('book_orders').doc(id).update({status});
+        const idx = adminOrdersData.findIndex(o => o.id === id);
+        if(idx !== -1) adminOrdersData[idx].status = status;
+        await logActivity("Update Status", `Status changed to: ${status}`, id);
+        showToast('Status updated', 'success');
+        renderOrders();
+    }
+    
+    async function deleteOrder(id) {
+        if(!db) return;
+        showConfirm('Adakah anda pasti ingin memadam tempahan ini?', async () => {
+            await db.collection('book_orders').doc(id).delete();
+            adminOrdersData = adminOrdersData.filter(o => o.id !== id);
+            await logActivity("Delete Order", "Order deleted permanently", id);
+            renderOrders();
+            showToast('Tempahan dipadam', 'success');
+        });
+    }
+    
+    async function deleteSelectedOrders() {
+        if(!db) return;
+        const ids = getSelectedIds('order-checkbox');
+        if(ids.length === 0) return showToast('Sila pilih sekurang-kurangnya satu tempahan', 'error');
+        showConfirm(`Adakah anda pasti ingin memadam ${ids.length} tempahan terpilih?`, async () => {
+            await Promise.all(ids.map(id => db.collection('book_orders').doc(id).delete()));
+            adminOrdersData = adminOrdersData.filter(o => !ids.includes(o.id));
+            await logActivity("Batch Delete", `${ids.length} orders deleted`, "Multiple");
+            renderOrders();
+            showToast(`${ids.length} tempahan dipadam`, 'success');
+        });
+    }
+
+    async function loadAnalysisData() {
+        if(!db) return;
+        const snap = await db.collection('book_orders').get();
+        let total = 0, count = 0, paid = 0, processing = 0, pending = 0;
+        snap.forEach(d => {
+            const o = d.data();
+            total += o.total; count++;
+            if(o.status === 'New') pending++;
+            else if(o.status === 'Processing') processing++;
+            else if(o.status === 'Paid') paid++;
+        });
+        document.getElementById('anaTotalRevenue').innerText = `RM ${total.toFixed(2)}`;
+        document.getElementById('anaTotalOrders').innerText = count;
+        document.getElementById('anaCompletedOrders').innerText = paid; 
+        document.getElementById('anaPendingOrders').innerText = pending; 
+        document.getElementById('statNewCount').innerText = pending;
+        document.getElementById('barNew').style.width = count > 0 ? `${(pending/count)*100}%` : '0%';
+        document.getElementById('statProcessingCount').innerText = processing;
+        document.getElementById('barProcessing').style.width = count > 0 ? `${(processing/count)*100}%` : '0%';
+        document.getElementById('statPaidCount').innerText = paid;
+        document.getElementById('barPaid').style.width = count > 0 ? `${(paid/count)*100}%` : '0%';
+    }
+
+    async function addItem() {
+        if(!db) return;
+        const name = document.getElementById('newItemName').value;
+        const price = parseFloat(document.getElementById('newItemPrice').value);
+        if(name && price) {
+            await db.collection('book_items').add({name, price});
+            hideAddItemForm(); loadItemsAdmin(); loadItems();
+        }
+    }
+    
+    async function loadItemsAdmin() {
+        if(!db) return;
+        const b = document.getElementById('itemsAdminTableBody');
+        b.innerHTML = '';
+        allItems.forEach(i => {
+            b.innerHTML += `<tr>
+            <td class="p-3 text-center"><input type="checkbox" class="item-checkbox custom-checkbox" value="${i.id}"></td>
+            <td class="p-3">${i.name}</td>
+            <td class="p-3 text-right">${i.price.toFixed(2)}</td>
+            <td class="p-3 text-center"><button onclick="deleteItem('${i.id}')" class="text-red-500 hover:text-red-700 transition-colors"><i class="fas fa-trash"></i></button></td></tr>`;
+        });
+    }
+    
+    async function deleteItem(id) { 
+        if(!db) return;
+        showConfirm('Adakah anda pasti ingin memadam barang ini?', async () => {
+             await db.collection('book_items').doc(id).delete(); 
+             loadItemsAdmin(); loadItems(); 
+             showToast('Barang dipadam', 'success');
+        });
+    }
+    
+    async function deleteSelectedItems() {
+        if(!db) return;
+        const ids = getSelectedIds('item-checkbox');
+        if(ids.length === 0) return showToast('Sila pilih barang', 'error');
+        showConfirm(`Adakah anda pasti ingin memadam ${ids.length} barang terpilih?`, async () => {
+            await Promise.all(ids.map(id => db.collection('book_items').doc(id).delete()));
+            loadItemsAdmin(); loadItems();
+            showToast('Barang terpilih dipadam', 'success');
+        });
+    }
+
+    async function addFee() {
+        if(!db) return;
+        const name = document.getElementById('newFeeName').value;
+        const amount = parseFloat(document.getElementById('newFeeAmount').value);
+        const desc = document.getElementById('newFeeDescription').value;
+        if(name && amount) {
+            await db.collection('pibg_fees').add({name, amount, description: desc});
+            hideAddFeeForm(); loadFeesAdmin(); loadFees();
+        }
+    }
+
+    async function loadFeesAdmin() {
+        if(!db) return;
+        const b = document.getElementById('feesAdminTableBody');
+        b.innerHTML = '';
+        allFees.forEach(f => {
+            b.innerHTML += `<tr>
+            <td class="p-3 text-center"><input type="checkbox" class="fee-checkbox custom-checkbox" value="${f.id}"></td>
+            <td class="p-3">${f.name}</td><td class="p-3 text-right">${f.amount.toFixed(2)}</td><td class="p-3">${f.description}</td>
+            <td class="p-3 text-center"><button onclick="deleteFee('${f.id}')" class="text-red-500 hover:text-red-700 transition-colors"><i class="fas fa-trash"></i></button></td></tr>`;
+        });
+    }
+    async function deleteFee(id) { 
+        if(!db) return;
+        showConfirm('Adakah anda pasti ingin memadam yuran ini?', async () => {
+             await db.collection('pibg_fees').doc(id).delete(); 
+             loadFeesAdmin(); loadFees(); 
+             showToast('Yuran dipadam', 'success');
+        });
+    }
+    async function deleteSelectedFees() {
+        if(!db) return;
+        const ids = getSelectedIds('fee-checkbox');
+        if(ids.length === 0) return showToast('Sila pilih yuran', 'error');
+        showConfirm(`Adakah anda pasti ingin memadam ${ids.length} yuran terpilih?`, async () => {
+            await Promise.all(ids.map(id => db.collection('pibg_fees').doc(id).delete()));
+            loadFeesAdmin(); loadFees();
+            showToast('Yuran terpilih dipadam', 'success');
+        });
+    }
+
+    function loadPackagesAdmin() {
+       const container = document.getElementById('packagesListContainer');
+       if(!container) return;
+       container.innerHTML = '';
+       allPackages.forEach(p => {
+          let itemsHtml = '';
+          if(p.items) {
+             p.items.forEach(pi => {
+                const item = allItems.find(i => i.id === pi.itemId);
+                if(item) itemsHtml += `<span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded mr-1">${item.name} (${pi.qty})</span>`;
+             });
+          }
+          container.innerHTML += `
+            <div class="bg-white p-4 rounded-xl border-2 border-gray-100 mb-3 shadow-sm flex items-start gap-3">
+               <input type="checkbox" class="package-checkbox custom-checkbox mt-1" value="${p.id}">
+               <div class="flex-1">
+                  <div class="flex justify-between items-start">
+                      <div><h4 class="font-bold text-lg text-primary">${p.name}</h4><div class="flex flex-wrap gap-2 mt-2">${itemsHtml}</div></div>
+                      <button onclick="deletePackage('${p.id}')" class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"><i class="fas fa-trash"></i></button>
+                  </div>
+               </div>
+            </div>
+          `;
+       });
+       const list = document.getElementById('packageItemsList');
+       if(list) {
+         list.innerHTML = '';
+         allItems.forEach(i => {
+            list.innerHTML += `<label class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer"><input type="checkbox" class="package-item-checkbox form-checkbox h-4 w-4 text-blue-600 rounded" value="${i.id}"><span class="ml-2 text-sm text-gray-700">${i.name} - RM${i.price.toFixed(2)}</span><input type="number" min="1" value="1" class="package-item-qty ml-auto w-16 px-2 py-1 border rounded text-xs" onclick="event.stopPropagation()"></label>`;
+         });
+       }
+    }
+
+    async function addPackage() {
+       if(!db) return;
+       const name = document.getElementById('newPackageName').value;
+       if(!name) { showToast('Enter package name', 'error'); return; }
+       const selectedItems = [];
+       document.querySelectorAll('.package-item-checkbox:checked').forEach(cb => {
+          const row = cb.closest('label');
+          const qty = parseInt(row.querySelector('.package-item-qty').value) || 1;
+          selectedItems.push({ itemId: cb.value, qty });
+       });
+       if(selectedItems.length === 0) { showToast('Select at least one item', 'error'); return; }
+       await db.collection('book_packages').add({ name, items: selectedItems });
+       hideAddPackageForm(); loadPackages(); loadPackagesAdmin(); showToast('Package added', 'success');
+    }
+
+    async function deletePackage(id) {
+       if(!db) return;
+       showConfirm('Adakah anda pasti ingin memadam pakej ini?', async () => {
+           await db.collection('book_packages').doc(id).delete();
+           loadPackages(); loadPackagesAdmin();
+           showToast('Package deleted', 'success');
+       });
+    }
+    
+    async function deleteSelectedPackages() {
+        if(!db) return;
+        const ids = getSelectedIds('package-checkbox');
+        if(ids.length === 0) return showToast('Sila pilih pakej', 'error');
+        showConfirm(`Adakah anda pasti ingin memadam ${ids.length} pakej terpilih?`, async () => {
+            await Promise.all(ids.map(id => db.collection('book_packages').doc(id).delete()));
+            loadPackages(); loadPackagesAdmin();
+            showToast('Pakej terpilih dipadam', 'success');
+        });
+    }
+
+    function showAddPackageForm() { document.getElementById('addPackageForm').classList.remove('hidden'); }
+    function hideAddPackageForm() { document.getElementById('addPackageForm').classList.add('hidden'); }
+    function showAddItemForm() { document.getElementById('addItemForm').classList.remove('hidden'); }
+    function hideAddItemForm() { document.getElementById('addItemForm').classList.add('hidden'); }
+    function showAddFeeForm() { document.getElementById('addFeeForm').classList.remove('hidden'); }
+    function hideAddFeeForm() { document.getElementById('addFeeForm').classList.add('hidden'); }
+    
     function updateClassesList() {
       const container = document.getElementById('classesListContainer');
       if (!container) return;
       container.innerHTML = '';
       allClasses.forEach(c => {
-        container.innerHTML += `<div class="flex justify-between p-3 bg-gray-50 border rounded"><span>${c}</span><button onclick="deleteClass('${c}')" class="text-red-500"><i class="fas fa-trash"></i></button></div>`;
+        container.innerHTML += `
+          <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+            <span class="font-medium text-gray-700">${c}</span>
+            <button onclick="deleteClass('${c}')" class="text-red-500 hover:text-red-700 transition-colors">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>`;
       });
     }
+
     async function addClass() {
-      const name = document.getElementById('newClassName').value.trim();
-      if(name && !allClasses.includes(name)) { await db.collection('settings').doc('book_classes').set({list: [...allClasses, name].sort()}); loadClasses(); }
+      if(!db) return;
+      const input = document.getElementById('newClassName');
+      const name = input.value.trim();
+      if (!name) return;
+      if (allClasses.includes(name)) { showToast('Class already exists', 'error'); return; }
+      const newList = [...allClasses, name].sort();
+      await db.collection('settings').doc('book_classes').set({ list: newList });
+      input.value = ''; loadClasses(); showToast('Class added', 'success');
     }
-    async function deleteClass(n) {
-        showConfirm('Delete?', async()=>{ await db.collection('settings').doc('book_classes').set({list: allClasses.filter(c=>c!==n)}); loadClasses(); });
+    
+    async function deleteClass(name) {
+      if(!db) return;
+      showConfirm('Adakah anda pasti?', async () => {
+          const newList = allClasses.filter(c => c !== name);
+          await db.collection('settings').doc('book_classes').set({ list: newList });
+          loadClasses(); showToast('Class deleted', 'success');
+      });
+    }
+
+    async function saveTelegramSettings() {
+        if(!db) return;
+        await db.collection('settings').doc('telegram_settings').set({
+            botToken: document.getElementById('telegramBotToken').value,
+            chatId: document.getElementById('telegramChatId').value
+        });
+        showToast('Settings Saved', 'success');
+    }
+    async function loadTelegramSettings() {
+        if(!db) return;
+        const d = await db.collection('settings').doc('telegram_settings').get();
+        if(d.exists) {
+            document.getElementById('telegramBotToken').value = d.data().botToken;
+            document.getElementById('telegramChatId').value = d.data().chatId;
+            document.getElementById('telegramStatus').innerText = 'Configured ✅';
+            document.getElementById('telegramStatusMain').innerText = 'Configured ✅';
+        }
+    }
+    async function saveGoogleSheetSettings() {
+        if(!db) return;
+        await db.collection('settings').doc('google_sheet_settings').set({
+            webAppUrl: document.getElementById('googleSheetUrl').value
+        });
+        showToast('Settings Saved', 'success');
+    }
+    async function loadGoogleSheetSettings() {
+        if(!db) return;
+        const d = await db.collection('settings').doc('google_sheet_settings').get();
+        if(d.exists && d.data().webAppUrl) {
+            document.getElementById('googleSheetUrl').value = d.data().webAppUrl;
+            document.getElementById('googleSheetStatus').innerText = 'Configured ✅';
+            document.getElementById('googleSheetStatusMain').innerText = 'Configured ✅';
+        }
+    }
+
+    // --- FUNGSI BARU: PENGURUSAN PEMBAYARAN ---
+
+    async function loadPaymentSettings() {
+        if(!db) return;
+        try {
+            const doc = await db.collection('settings').doc('payment_methods').get();
+            if (doc.exists) {
+                const data = doc.data();
+                paymentConfig.cash = data.cash !== false;   // Default true jika tiada data
+                paymentConfig.online = data.online !== false; // Default true jika tiada data
+            }
+        } catch (e) {
+            console.error("Error loading payment settings:", e);
+        }
+    }
+
+    // Fungsi untuk mengemaskini dropdown di borang ibu bapa
+    function updatePaymentOptions() {
+        const select = document.getElementById('paymentMethod');
+        if (!select) return;
+        
+        select.innerHTML = ''; // Kosongkan dahulu
+        
+        let hasOption = false;
+
+        if (paymentConfig.cash) {
+            const opt = document.createElement('option');
+            opt.value = 'Cash';
+            opt.text = translations[currentLang].cash; // Gunakan translation
+            select.add(opt);
+            hasOption = true;
+        }
+
+        if (paymentConfig.online) {
+            const opt = document.createElement('option');
+            opt.value = 'Online';
+            opt.text = translations[currentLang].online; // Gunakan translation
+            select.add(opt);
+            hasOption = true;
+        }
+
+        // Jika tiada method aktif, letak placeholder atau disable butang
+        const submitBtn = document.getElementById('submitOrderBtn');
+        if (!hasOption) {
+            const opt = document.createElement('option');
+            opt.text = currentLang === 'ms' ? '-- Pembayaran Ditutup --' : '-- Payment Closed --';
+            select.add(opt);
+            select.disabled = true;
+            if(submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                submitBtn.title = "Pembayaran ditutup sementara";
+            }
+        } else {
+            select.disabled = false;
+            if(submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                submitBtn.title = "";
+            }
+        }
+    }
+
+    // Fungsi untuk Admin (Load status ke checkbox)
+    async function loadPaymentSettingsAdmin() {
+        await loadPaymentSettings(); // Pastikan data terkini
+        
+        const toggleCash = document.getElementById('toggleCash');
+        const toggleOnline = document.getElementById('toggleOnline');
+        const statusMain = document.getElementById('paymentStatusMain');
+        
+        if (toggleCash) toggleCash.checked = paymentConfig.cash;
+        if (toggleOnline) toggleOnline.checked = paymentConfig.online;
+        
+        // Update status text di kad dashboard
+        if (statusMain) {
+            const activeMethods = [];
+            if (paymentConfig.cash) activeMethods.push("Tunai");
+            if (paymentConfig.online) activeMethods.push("Online");
+            statusMain.innerText = activeMethods.length > 0 ? activeMethods.join(" & ") : "Semua Ditutup";
+            statusMain.className = `text-sm font-medium p-2 rounded text-center border border-gray-200 ${activeMethods.length > 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'}`;
+        }
+    }
+
+    // Fungsi untuk Admin (Simpan ke Firebase)
+    async function savePaymentSettings() {
+        if(!db) return;
+        const cashEnabled = document.getElementById('toggleCash').checked;
+        const onlineEnabled = document.getElementById('toggleOnline').checked;
+        
+        try {
+            await db.collection('settings').doc('payment_methods').set({
+                cash: cashEnabled,
+                online: onlineEnabled,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // Update local config
+            paymentConfig.cash = cashEnabled;
+            paymentConfig.online = onlineEnabled;
+            
+            loadPaymentSettingsAdmin(); // Refresh UI Admin
+            showToast('Tetapan pembayaran berjaya disimpan', 'success');
+        } catch (e) {
+            console.error(e);
+            showToast('Ralat menyimpan tetapan', 'error');
+        }
+    }
+
+    function copyAppsScriptCode() {
+        navigator.clipboard.writeText(document.getElementById('appsScriptCode').value);
+        showToast('Code copied', 'success');
     }
   </script>
 </body>
