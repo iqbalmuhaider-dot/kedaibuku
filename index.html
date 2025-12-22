@@ -85,6 +85,40 @@
             box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
         }
         input, select { font-size: 16px !important; }
+        
+        /* Sidebar Mobile Drawer Styles */
+        #adminSidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 60;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+            width: 260px; /* Lebar sidebar mobile */
+        }
+        #adminSidebar.open {
+            transform: translateX(0);
+        }
+        #mobileBackdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 55;
+            display: none;
+        }
+        #mobileBackdrop.open {
+            display: block;
+        }
+    }
+    
+    @media (min-width: 769px) {
+        #adminSidebar {
+            position: static;
+            transform: none;
+            width: 16rem; /* w-64 */
+            height: auto;
+        }
     }
 
     /* Stepper Styling */
@@ -167,7 +201,7 @@
           </div>
       </div>
       <div class="mt-auto pt-12">
-        <p class="text-gray-300 text-[10px] font-mono">&copy; 2024 eKedai Buku v1.0</p>
+        <p class="text-gray-300 text-[10px] font-mono">&copy; 2026 eKedai Buku v2.0</p>
       </div>
    </div>
 
@@ -378,9 +412,11 @@
                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Semakan Status</h2>
                    <p class="text-gray-500 text-sm mb-8 max-w-xs mx-auto">Masukkan nombor telefon ibu bapa/penjaga yang didaftarkan.</p>
                    
-                   <div class="flex gap-3 max-w-sm mx-auto">
-                       <input type="tel" id="statusPhone" class="flex-1 px-5 py-3.5 rounded-xl border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none text-center text-lg tracking-wider font-semibold" placeholder="012xxxxxxx">
-                       <button onclick="checkStatus()" class="bg-orange-500 hover:bg-orange-600 text-white px-6 rounded-xl font-bold shadow-lg hover:shadow-orange-500/30 transition-all active:scale-95"><i class="fas fa-arrow-right"></i></button>
+                   <div class="flex gap-3 max-w-sm mx-auto w-full"> <!-- Added w-full -->
+                       <input type="tel" id="statusPhone" onkeypress="if(event.key === 'Enter') checkStatus()" class="flex-1 px-5 py-3.5 rounded-xl border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-100 outline-none text-center text-lg tracking-wider font-semibold min-w-0" placeholder="012xxxxxxx">
+                       <button onclick="checkStatus()" class="bg-orange-500 hover:bg-orange-600 text-white px-6 rounded-xl font-bold shadow-lg hover:shadow-orange-500/30 transition-all active:scale-95 shrink-0 flex items-center justify-center gap-2"> <!-- Added shrink-0 -->
+                           <i class="fas fa-search"></i> <span class="hidden md:inline">Cari</span>
+                       </button>
                    </div>
                </div>
                <div class="flex-1 overflow-y-auto p-6 bg-gray-50/50">
@@ -458,11 +494,20 @@
 
   <!-- ADMIN DASHBOARD -->
    <div id="adminDashboard" class="fixed inset-0 bg-gray-100 z-50 hidden flex overflow-hidden">
+       <!-- Backdrop for Mobile Sidebar -->
+       <div id="mobileBackdrop" onclick="toggleAdminSidebar()"></div>
+
        <!-- Sidebar -->
-       <aside class="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col shadow-sm">
-           <div class="p-6 border-b border-gray-100 flex items-center gap-3">
-               <div class="bg-blue-600 text-white p-2 rounded-lg"><i class="fas fa-shield-alt"></i></div>
-               <div class="font-bold text-gray-800 leading-tight">Admin Panel<br><span class="text-xs text-gray-400 font-normal">v2.1 Pro</span></div>
+       <aside id="adminSidebar" class="bg-white border-r border-gray-200 flex flex-col shadow-sm">
+           <div class="p-6 border-b border-gray-100 flex items-center justify-between gap-3">
+               <div class="flex items-center gap-3">
+                    <div class="bg-blue-600 text-white p-2 rounded-lg"><i class="fas fa-shield-alt"></i></div>
+                    <div class="font-bold text-gray-800 leading-tight">Admin Panel<br><span class="text-xs text-gray-400 font-normal">v2.1 Pro</span></div>
+               </div>
+               <!-- Close button for mobile sidebar -->
+               <button onclick="toggleAdminSidebar()" class="md:hidden text-gray-400 hover:text-gray-600">
+                   <i class="fas fa-times text-xl"></i>
+               </button>
            </div>
            
            <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -499,8 +544,13 @@
        <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f3f4f6]">
            <!-- Topbar Mobile Toggle -->
            <div class="bg-white border-b border-gray-200 p-4 flex md:hidden justify-between items-center shadow-sm">
-               <span class="font-bold text-gray-800">Admin Panel</span>
-               <button onclick="logoutAdmin()" class="text-red-500"><i class="fas fa-sign-out-alt"></i></button>
+               <div class="flex items-center gap-3">
+                   <button onclick="toggleAdminSidebar()" class="text-gray-600 hover:text-blue-600 focus:outline-none">
+                       <i class="fas fa-bars text-xl"></i>
+                   </button>
+                   <span class="font-bold text-gray-800">Admin Panel</span>
+               </div>
+               <button onclick="logoutAdmin()" class="text-red-500 p-2"><i class="fas fa-sign-out-alt"></i></button>
            </div>
            
            <!-- Content Area -->
@@ -728,6 +778,7 @@
 
     let lastOrderData = null; 
     let publicStatusData = []; 
+    let isMobileSidebarOpen = false;
 
     // --- HELPER FUNCTIONS ---
     function showToast(msg, type = 'info') {
@@ -779,6 +830,19 @@
             target.classList.add('fade-in');
         }
         window.scrollTo(0,0);
+    }
+
+    function toggleAdminSidebar() {
+        isMobileSidebarOpen = !isMobileSidebarOpen;
+        const sidebar = document.getElementById('adminSidebar');
+        const backdrop = document.getElementById('mobileBackdrop');
+        if (isMobileSidebarOpen) {
+            sidebar.classList.add('open');
+            backdrop.classList.add('open');
+        } else {
+            sidebar.classList.remove('open');
+            backdrop.classList.remove('open');
+        }
     }
 
     // --- STEPPER LOGIC ---
@@ -966,7 +1030,7 @@
       doc.setTextColor(100, 100, 100);
       doc.text("* Resit ini dijana secara komputer dan sah tanpa tandatangan.", 105, finalY, {align: 'center'});
       if(!isPaid) {
-           doc.text("* Sila jelaskan bayaran kepada guru kelas atau melalui perbankan internet.", 105, finalY + 5, {align: 'center'});
+           doc.text("* Sila jelaskan bayaran secara TUNAI kepada guru kelas.", 105, finalY + 5, {align: 'center'});
       } else {
            doc.text("* Terima kasih atas bayaran anda.", 105, finalY + 5, {align: 'center'});
       }
@@ -1319,6 +1383,12 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
         if(activeBtn) activeBtn.classList.add('active');
         document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
+        
+        // Auto close sidebar on mobile
+        if(window.innerWidth <= 768) {
+            toggleAdminSidebar();
+        }
+
         if(id === 'analysisTab') renderAnalysis();
         if(id === 'ordersTab') loadOrders();
         if(id === 'itemsTab') loadItemsAdmin();
