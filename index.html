@@ -717,7 +717,15 @@
     let allItems = [], allPackages = [], allClasses = [], allFees = [], adminOrdersData = [];
     let cart = {}, currentOrderData = {}, selectedPackageId = null;
     let paymentConfig = { cash: true, online: true };
-    let telegramConfig = { botToken: '', chatId: '' }; // Global variable for telegram settings
+    
+    // --- TELEGRAM CONFIGURATION ---
+    // PENTING: Untuk demo public, masukkan token terus di sini jika database access denied.
+    // Jika tidak, sistem akan cuba ambil dari database (hanya Admin boleh baca).
+    let telegramConfig = { 
+        botToken: '', // Contoh: '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11'
+        chatId: ''    // Contoh: '-100123456789'
+    }; 
+
     let lastOrderData = null; 
     let publicStatusData = []; 
 
@@ -728,6 +736,17 @@
         t.innerHTML = msg;
         document.body.appendChild(t);
         setTimeout(() => t.remove(), 3000);
+    }
+    
+    // NEW: Function to escape HTML special characters to prevent XSS
+    function escapeHtml(text) {
+        if (!text) return text;
+        return String(text)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
     
     let confirmCallback = null;
@@ -990,14 +1009,14 @@
             if(p.items && p.items.length > 0) {
                 p.items.forEach(pi => {
                     const itemData = allItems.find(i => i.id === pi.itemId);
-                    if(itemData) itemsListHtml += `<li>${itemData.name} <span class="text-gray-400 text-[10px]">(x${pi.qty})</span></li>`;
+                    if(itemData) itemsListHtml += `<li>${escapeHtml(itemData.name)} <span class="text-gray-400 text-[10px]">(x${pi.qty})</span></li>`;
                 });
             } else { itemsListHtml += '<li>Tiada barang tersenarai</li>'; }
             itemsListHtml += '</ul>';
             grid.innerHTML += `
             <div onclick="selectPackage('${p.id}')" class="flex flex-col h-full border-2 rounded-xl p-5 cursor-pointer transition-all relative overflow-hidden ${isActive ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-100' : 'border-gray-200 hover:border-blue-300 hover:shadow-md'}">
                 <div class="flex justify-between items-start mb-2">
-                    <span class="font-bold text-lg text-gray-800">${p.name}</span>
+                    <span class="font-bold text-lg text-gray-800">${escapeHtml(p.name)}</span>
                     ${isActive ? '<i class="fas fa-check-circle text-blue-600 text-xl"></i>' : '<div class="w-5 h-5 rounded-full border-2 border-gray-300"></div>'}
                 </div>
                 <div class="flex-1">
@@ -1046,7 +1065,7 @@
                 : `<input type="number" min="0" value="${qty}" class="w-16 border rounded text-center p-1" onchange="updateCart('${item.id}', this.value)">`;
             tbody.innerHTML += `
             <tr class="${qty > 0 ? 'bg-blue-50' : ''}">
-                <td class="px-4 py-3 font-medium">${item.name}</td>
+                <td class="px-4 py-3 font-medium">${escapeHtml(item.name)}</td>
                 <td class="px-4 py-3 text-right">RM ${item.price.toFixed(2)}</td>
                 <td class="px-4 py-3 text-center">${input}</td>
             </tr>`;
@@ -1104,7 +1123,7 @@
         tbody.innerHTML = '';
         allFees.forEach(f => {
             const selected = !!cart[f.id];
-            tbody.innerHTML += `<tr><td class="py-3 px-2 font-medium">${f.name} <div class="text-xs text-gray-400 font-normal">${f.description||''}</div></td><td class="py-3 px-2 text-right">RM ${f.amount.toFixed(2)}</td><td class="py-3 px-2 text-center"><button onclick="toggleFee('${f.id}')" class="px-3 py-1 rounded text-xs font-bold ${selected ? 'bg-red-100 text-red-600':'bg-green-100 text-green-600'}">${selected ? 'Buang' : 'Tambah'}</button></td></tr>`;
+            tbody.innerHTML += `<tr><td class="py-3 px-2 font-medium">${escapeHtml(f.name)} <div class="text-xs text-gray-400 font-normal">${escapeHtml(f.description||'')}</div></td><td class="py-3 px-2 text-right">RM ${f.amount.toFixed(2)}</td><td class="py-3 px-2 text-center"><button onclick="toggleFee('${f.id}')" class="px-3 py-1 rounded text-xs font-bold ${selected ? 'bg-red-100 text-red-600':'bg-green-100 text-green-600'}">${selected ? 'Buang' : 'Tambah'}</button></td></tr>`;
         });
     }
 
@@ -1121,13 +1140,13 @@
         let total = 0;
         if(currentOrderData.nametag) {
             document.getElementById('nametagReview').classList.remove('hidden');
-            document.getElementById('nametagDisplay').textContent = currentOrderData.nametag;
+            document.getElementById('nametagDisplay').textContent = escapeHtml(currentOrderData.nametag);
         } else { document.getElementById('nametagReview').classList.add('hidden'); }
 
         Object.values(cart).forEach(item => {
             const rowTotal = item.price * item.quantity;
             total += rowTotal;
-            div.innerHTML += `<div class="flex justify-between"><span>${item.name} <span class="text-xs text-gray-400">x${item.quantity}</span></span><span class="font-bold">RM ${rowTotal.toFixed(2)}</span></div>`;
+            div.innerHTML += `<div class="flex justify-between"><span>${escapeHtml(item.name)} <span class="text-xs text-gray-400">x${item.quantity}</span></span><span class="font-bold">RM ${rowTotal.toFixed(2)}</span></div>`;
         });
         document.querySelector('.grandTotalDisplay').textContent = total.toFixed(2);
         
@@ -1169,10 +1188,8 @@
             await db.collection('book_orders').add(order);
             lastOrderData = order;
 
-            // --- PANGGIL FUNGSI TELEGRAM ---
-            if(telegramConfig.botToken && telegramConfig.chatId) {
-                sendTelegramNotification(order);
-            }
+            // --- PANGGIL FUNGSI TELEGRAM (Diaktifkan Semula) ---
+            await sendTelegramNotification(order);
 
             document.getElementById('successOrderId').textContent = order.shortId;
             document.getElementById('successModal').classList.remove('hidden');
@@ -1181,38 +1198,52 @@
         } catch(e) { console.error(e); showToast('Ralat: ' + e.message, 'error'); btn.disabled = false; btn.innerHTML = "Sahkan Tempahan"; }
     }
 
-    // --- FUNGSI BARU: NOTIFIKASI TELEGRAM ---
+    // --- FUNGSI NOTIFIKASI TELEGRAM (CLIENT SIDE) ---
     async function sendTelegramNotification(order) {
-        const itemsList = Object.values(order.items).map(i => `- ${i.name} (x${i.quantity})`).join('\n');
+        const token = telegramConfig.botToken;
+        const chatId = telegramConfig.chatId;
+
+        if (!token || !chatId) {
+            console.warn("Telegram: Token atau Chat ID tiada. Notifikasi tidak dihantar.");
+            return;
+        }
+
+        // Format Mesej
+        const date = new Date().toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' });
+        let itemsList = "";
+        Object.values(order.items).forEach(i => {
+            itemsList += `- ${i.name} (x${i.quantity})\n`;
+        });
+
         const message = `
-📦 *TEMPAHAN BARU #${order.shortId}*
---------------------------------
+📦 *TEMPAHAN BARU DITERIMA*
+---------------------------
 👤 *Pelajar:* ${order.studentName}
 🏫 *Kelas:* ${order.studentClass}
-👨‍👩‍👦 *Ibu Bapa:* ${order.parentName}
-📞 *Tel:* ${order.parentPhone}
-🏷️ *Nametag:* ${order.nametag || 'TIADA'}
-💳 *Bayaran:* ${order.paymentMethod}
+🆔 *ID:* \`${order.shortId}\`
+📅 *Tarikh:* ${date}
 
-🛒 *Senarai Barang:*
+📋 *Senarai Barang:*
 ${itemsList}
-
-💰 *JUMLAH: RM ${order.total.toFixed(2)}*
+---------------------------
+💰 *Jumlah:* RM ${order.total.toFixed(2)}
+💳 *Bayaran:* ${order.paymentMethod === 'Cash' ? 'Tunai' : 'Online'}
+📞 *Ibu Bapa:* ${order.parentName} (${order.parentPhone})
+${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
 `;
-        const url = `https://api.telegram.org/bot${telegramConfig.botToken}/sendMessage`;
+
+        // Hantar ke API Telegram menggunakan GET request (query params)
+        // Ini lebih serasi dengan sekatan CORS berbanding POST JSON
+        const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}&parse_mode=Markdown`;
+        
         try {
             await fetch(url, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    chat_id: telegramConfig.chatId,
-                    text: message,
-                    parse_mode: 'Markdown'
-                })
+                method: 'GET',
+                mode: 'no-cors' // Penting: Hantar request tanpa menunggu response (Fire and Forget)
             });
-            console.log("Telegram notification sent.");
+            console.log("Telegram notifikasi berjaya dihantar (No-CORS Mode).");
         } catch (error) {
-            console.error("Telegram error:", error);
+            console.error("Gagal menghantar Telegram:", error);
         }
     }
 
@@ -1229,7 +1260,8 @@ ${itemsList}
 
     // --- ADMIN PANEL LOGIC ---
     function checkAdminStatus() {
-        if(auth.currentUser) {
+        // FIX: Ensure user is NOT anonymous to access Admin Panel
+        if(auth.currentUser && !auth.currentUser.isAnonymous) {
             document.getElementById('landingPage').classList.add('hidden');
             document.getElementById('adminDashboard').classList.remove('hidden');
             document.getElementById('adminDashboard').classList.add('flex');
@@ -1275,8 +1307,10 @@ ${itemsList}
     function closeAdminLogin() { document.getElementById('adminLoginModal').classList.add('hidden'); }
     function logoutAdmin() {
         auth.signOut().then(() => {
-             // Use the helper function to reset all views to Landing Page
-             returnToLandingPage(); 
+             // After logout, re-sign in anonymously for public access
+             auth.signInAnonymously().then(() => {
+                 returnToLandingPage(); 
+             });
         });
     }
     function showAdminTab(id) {
@@ -1294,7 +1328,7 @@ ${itemsList}
         if(id === 'settingsTab') loadSettings();
     }
     async function loadAdminData() {
-        await Promise.all([loadClasses(), loadItems(), loadPackages(), loadFees()]);
+        await Promise.all([loadClasses(), loadItems(), loadPackages(), loadFees(), loadTelegramSettings()]);
         renderAnalysis();
     }
 
@@ -1319,13 +1353,13 @@ ${itemsList}
         const maxSale = Math.max(...Object.values(classSales), 1);
         Object.entries(classSales).sort((a,b)=>b[1]-a[1]).slice(0, 5).forEach(([cls, amt]) => {
              const percent = (amt / maxSale) * 100;
-             chartContainer.innerHTML += `<div class="mb-3"><div class="flex justify-between text-sm mb-1"><span class="font-bold text-gray-700">${cls}</span><span class="text-gray-500">RM ${amt.toFixed(2)}</span></div><div class="bar-container"><div class="bar-fill bg-blue-500" style="width: ${percent}%"></div></div></div>`;
+             chartContainer.innerHTML += `<div class="mb-3"><div class="flex justify-between text-sm mb-1"><span class="font-bold text-gray-700">${escapeHtml(cls)}</span><span class="text-gray-500">RM ${amt.toFixed(2)}</span></div><div class="bar-container"><div class="bar-fill bg-blue-500" style="width: ${percent}%"></div></div></div>`;
         });
         const activityContainer = document.getElementById('recentActivityLog');
         activityContainer.innerHTML = '';
         adminOrdersData.slice(0, 5).forEach(o => {
             const time = o.timestamp ? new Date(o.timestamp.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
-            activityContainer.innerHTML += `<div class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded"><div class="w-2 h-2 rounded-full ${o.status === 'Paid' ? 'bg-green-500' : 'bg-yellow-500'}"></div><div class="flex-1"><p class="font-bold text-gray-800">${o.studentName} <span class="text-xs font-normal text-gray-400">(${o.studentClass})</span></p><p class="text-xs text-gray-500">Tempahan #${o.shortId || '...'} - RM ${o.total.toFixed(2)}</p></div><div class="text-xs text-gray-400 font-mono">${time}</div></div>`;
+            activityContainer.innerHTML += `<div class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded"><div class="w-2 h-2 rounded-full ${o.status === 'Paid' ? 'bg-green-500' : 'bg-yellow-500'}"></div><div class="flex-1"><p class="font-bold text-gray-800">${escapeHtml(o.studentName)} <span class="text-xs font-normal text-gray-400">(${escapeHtml(o.studentClass)})</span></p><p class="text-xs text-gray-500">Tempahan #${escapeHtml(o.shortId) || '...'} - RM ${o.total.toFixed(2)}</p></div><div class="text-xs text-gray-400 font-mono">${time}</div></div>`;
         });
     }
 
@@ -1342,7 +1376,7 @@ ${itemsList}
         tbody.innerHTML = '';
         if(allItems.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-6 text-center text-gray-400">Tiada barang.</td></tr>'; return; }
         allItems.forEach(i => {
-            tbody.innerHTML += `<tr class="hover:bg-gray-50 group border-b border-gray-100 last:border-0"><td class="p-4 font-medium text-gray-700">${i.name}</td><td class="p-4 text-right font-mono">RM ${i.price.toFixed(2)}</td><td class="p-4 text-center"><button onclick="deleteItem('${i.id}')" class="text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-all"><i class="fas fa-trash-alt"></i></button></td></tr>`;
+            tbody.innerHTML += `<tr class="hover:bg-gray-50 group border-b border-gray-100 last:border-0"><td class="p-4 font-medium text-gray-700">${escapeHtml(i.name)}</td><td class="p-4 text-right font-mono">RM ${i.price.toFixed(2)}</td><td class="p-4 text-center"><button onclick="deleteItem('${i.id}')" class="text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-all"><i class="fas fa-trash-alt"></i></button></td></tr>`;
         });
     }
     async function addItem() {
@@ -1390,9 +1424,9 @@ ${itemsList}
             tbody.innerHTML += `
             <tr class="hover:bg-gray-50 border-b border-gray-100 last:border-0 cursor-pointer" onclick="viewOrderDetails('${o.id}')">
                 <td class="p-4 text-center"><input type="checkbox" value="${o.id}" class="order-checkbox rounded border-gray-300" onclick="event.stopPropagation()"></td>
-                <td class="p-4 text-xs text-gray-500"><span class="font-mono font-bold text-gray-800">#${o.shortId}</span><br>${date}</td>
-                <td class="p-4 font-medium text-gray-800">${o.studentName}</td>
-                <td class="p-4 text-gray-600">${o.studentClass}</td>
+                <td class="p-4 text-xs text-gray-500"><span class="font-mono font-bold text-gray-800">#${escapeHtml(o.shortId)}</span><br>${date}</td>
+                <td class="p-4 font-medium text-gray-800">${escapeHtml(o.studentName)}</td>
+                <td class="p-4 text-gray-600">${escapeHtml(o.studentClass)}</td>
                 <td class="p-4 font-mono font-bold">RM ${o.total.toFixed(2)}</td>
                 <td class="p-4" onclick="event.stopPropagation()">${statusSelect}</td>
                 <td class="p-4 text-center flex items-center justify-center" onclick="event.stopPropagation()">
@@ -1411,9 +1445,9 @@ ${itemsList}
         if(!o) return;
         let itemsHtml = '';
         Object.values(o.items).forEach(i => {
-             itemsHtml += `<div class="flex justify-between py-2 border-b border-dashed border-gray-200 last:border-0"><span>${i.name} <span class="text-gray-400 text-xs">x${i.quantity}</span></span><span class="font-mono">RM ${(i.price*i.quantity).toFixed(2)}</span></div>`;
+             itemsHtml += `<div class="flex justify-between py-2 border-b border-dashed border-gray-200 last:border-0"><span>${escapeHtml(i.name)} <span class="text-gray-400 text-xs">x${i.quantity}</span></span><span class="font-mono">RM ${(i.price*i.quantity).toFixed(2)}</span></div>`;
         });
-        document.getElementById('orderDetailsContent').innerHTML = `<div class="grid grid-cols-2 gap-4 mb-4 bg-gray-50 p-4 rounded-xl border border-gray-100"><div><p class="text-xs text-gray-400 uppercase">Pelajar</p><p class="font-bold">${o.studentName}</p></div><div><p class="text-xs text-gray-400 uppercase">Kelas</p><p class="font-bold">${o.studentClass}</p></div><div><p class="text-xs text-gray-400 uppercase">Ibu Bapa</p><p class="font-bold">${o.parentName}</p></div><div><p class="text-xs text-gray-400 uppercase">Telefon</p><p class="font-bold">${o.parentPhone}</p></div></div>${o.nametag ? `<div class="bg-yellow-50 text-yellow-800 p-3 rounded-lg mb-4 text-center border border-yellow-200 font-bold">NAMETAG: ${o.nametag}</div>` : ''}<div class="bg-white border border-gray-200 rounded-xl p-4 mb-4"><h4 class="font-bold text-gray-700 mb-2 border-b pb-2">Item</h4>${itemsHtml}<div class="flex justify-between mt-3 pt-2 border-t font-bold text-lg"><span>Jumlah</span><span class="text-blue-600">RM ${o.total.toFixed(2)}</span></div></div><div class="text-xs text-gray-400 text-center">ID Rujukan: ${o.id}</div>`;
+        document.getElementById('orderDetailsContent').innerHTML = `<div class="grid grid-cols-2 gap-4 mb-4 bg-gray-50 p-4 rounded-xl border border-gray-100"><div><p class="text-xs text-gray-400 uppercase">Pelajar</p><p class="font-bold">${escapeHtml(o.studentName)}</p></div><div><p class="text-xs text-gray-400 uppercase">Kelas</p><p class="font-bold">${escapeHtml(o.studentClass)}</p></div><div><p class="text-xs text-gray-400 uppercase">Ibu Bapa</p><p class="font-bold">${escapeHtml(o.parentName)}</p></div><div><p class="text-xs text-gray-400 uppercase">Telefon</p><p class="font-bold">${escapeHtml(o.parentPhone)}</p></div></div>${o.nametag ? `<div class="bg-yellow-50 text-yellow-800 p-3 rounded-lg mb-4 text-center border border-yellow-200 font-bold">NAMETAG: ${escapeHtml(o.nametag)}</div>` : ''}<div class="bg-white border border-gray-200 rounded-xl p-4 mb-4"><h4 class="font-bold text-gray-700 mb-2 border-b pb-2">Item</h4>${itemsHtml}<div class="flex justify-between mt-3 pt-2 border-t font-bold text-lg"><span>Jumlah</span><span class="text-blue-600">RM ${o.total.toFixed(2)}</span></div></div><div class="text-xs text-gray-400 text-center">ID Rujukan: ${o.id}</div>`;
         document.getElementById('orderDetailsModal').classList.remove('hidden');
     }
     async function updateStatus(id, s) { 
@@ -1445,7 +1479,7 @@ ${itemsList}
             if(p.items && p.items.length) {
                 p.items.forEach(pi => {
                     const iData = allItems.find(x => x.id === pi.itemId);
-                    if(iData) itemsList += `<li>${iData.name} (x${pi.qty})</li>`;
+                    if(iData) itemsList += `<li>${escapeHtml(iData.name)} (x${pi.qty})</li>`;
                 });
             } else { itemsList += '<li>Tiada item.</li>'; }
             itemsList += '</ul>';
@@ -1453,7 +1487,7 @@ ${itemsList}
             <div class="p-4 border border-gray-200 rounded-xl bg-white shadow-sm flex flex-col justify-between">
                 <div>
                     <div class="flex justify-between items-start">
-                        <span class="font-bold text-lg text-gray-800">${p.name}</span>
+                        <span class="font-bold text-lg text-gray-800">${escapeHtml(p.name)}</span>
                         <button onclick="deletePackage('${p.id}')" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fas fa-trash"></i></button>
                     </div>
                     ${itemsList}
@@ -1467,7 +1501,7 @@ ${itemsList}
         const list = document.getElementById('packageItemsList');
         list.innerHTML = '';
         allItems.forEach(i => {
-            list.innerHTML += `<div class="flex items-center gap-2 mb-1 border-b pb-1 last:border-0"><input type="checkbox" class="pkg-item-cb" value="${i.id}"> <span class="text-sm flex-1">${i.name}</span> <input type="number" class="pkg-item-qty w-12 text-xs border p-1 rounded" value="1"></div>`;
+            list.innerHTML += `<div class="flex items-center gap-2 mb-1 border-b pb-1 last:border-0"><input type="checkbox" class="pkg-item-cb" value="${i.id}"> <span class="text-sm flex-1">${escapeHtml(i.name)}</span> <input type="number" class="pkg-item-qty w-12 text-xs border p-1 rounded" value="1"></div>`;
         });
     }
     function hideAddPackageForm() { document.getElementById('addPackageForm').classList.add('hidden'); }
@@ -1489,7 +1523,7 @@ ${itemsList}
     async function loadFees() { const s = await db.collection('pibg_fees').get(); allFees = []; s.forEach(d => allFees.push({id:d.id, ...d.data()})); }
     function loadFeesAdmin() {
         const b = document.getElementById('feesAdminTableBody'); b.innerHTML = '';
-        allFees.forEach(f => { b.innerHTML += `<tr><td class="p-3">${f.name}</td><td class="p-3 text-right">RM ${f.amount}</td><td class="p-3 text-center"><button onclick="deleteFee('${f.id}')" class="text-red-500"><i class="fas fa-trash"></i></button></td></tr>`; });
+        allFees.forEach(f => { b.innerHTML += `<tr><td class="p-3">${escapeHtml(f.name)}</td><td class="p-3 text-right">RM ${f.amount}</td><td class="p-3 text-center"><button onclick="deleteFee('${f.id}')" class="text-red-500"><i class="fas fa-trash"></i></button></td></tr>`; });
     }
     function showAddFeeForm() { document.getElementById('addFeeForm').classList.remove('hidden'); }
     function hideAddFeeForm() { document.getElementById('addFeeForm').classList.add('hidden'); }
@@ -1501,7 +1535,7 @@ ${itemsList}
 
     function updateClassesListAdmin() {
         const d = document.getElementById('classesListAdmin'); d.innerHTML = '';
-        allClasses.forEach(c => { d.innerHTML += `<div class="bg-gray-50 border p-3 rounded-lg flex justify-between items-center"><span class="font-bold text-gray-700">${c}</span><button onclick="deleteClass('${c}')" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button></div>`; });
+        allClasses.forEach(c => { d.innerHTML += `<div class="bg-gray-50 border p-3 rounded-lg flex justify-between items-center"><span class="font-bold text-gray-700">${escapeHtml(c)}</span><button onclick="deleteClass('${c}')" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button></div>`; });
     }
     async function addClass() {
         const v = document.getElementById('newClassName').value.toUpperCase();
@@ -1518,25 +1552,43 @@ ${itemsList}
 
     async function loadSettings() {
         if(!db) return;
-        const p = await db.collection('settings').doc('payment_config').get();
-        if(p.exists) { 
-            paymentConfig = p.data(); 
-            const c = document.getElementById('toggleCash');
-            const o = document.getElementById('toggleOnline');
-            if(c) c.checked = paymentConfig.cash;
-            if(o) o.checked = paymentConfig.online;
+        
+        // 1. Muat turun Tetapan Pembayaran (Public Boleh Baca)
+        try {
+            const p = await db.collection('settings').doc('payment_config').get();
+            if(p.exists) { 
+                paymentConfig = p.data(); 
+                const c = document.getElementById('toggleCash');
+                const o = document.getElementById('toggleOnline');
+                if(c) c.checked = paymentConfig.cash;
+                if(o) o.checked = paymentConfig.online;
+            }
+        } catch (e) {
+            console.log("Tidak dapat memuat turun payment_config (Mungkin sekatan rules untuk public):", e);
         }
-        const t = await db.collection('settings').doc('telegram_settings').get();
-        if(t.exists) { 
-            // Load and store globally
-            telegramConfig = {
-                botToken: t.data().botToken || '',
-                chatId: t.data().chatId || ''
-            };
-            document.getElementById('telegramBotToken').value = telegramConfig.botToken; 
-            document.getElementById('telegramChatId').value = telegramConfig.chatId; 
+
+        // PERINGATAN: KITA TIDAK MEMUAT TURUN TELEGRAM TOKEN DI SINI
+        // INI KERANA RULES MENGHALANG PUBLIC DARIPADA MEMBACA TOKEN
+        // TOKEN HANYA AKAN DIMUAT TURUN APABILA ADMIN LOG MASUK
+    }
+
+    async function loadTelegramSettings() {
+        // Fungsi ini hanya dipanggil oleh Admin
+        try {
+            const t = await db.collection('settings').doc('telegram_settings').get();
+            if(t.exists) { 
+                telegramConfig = {
+                    botToken: t.data().botToken || '',
+                    chatId: t.data().chatId || ''
+                };
+                document.getElementById('telegramBotToken').value = telegramConfig.botToken; 
+                document.getElementById('telegramChatId').value = telegramConfig.chatId; 
+            }
+        } catch (e) {
+            console.error("Gagal memuat turun tetapan Telegram (Mungkin bukan admin):", e);
         }
     }
+
     async function savePaymentSettings() {
         const c = document.getElementById('toggleCash').checked;
         const o = document.getElementById('toggleOnline').checked;
@@ -1588,14 +1640,14 @@ ${itemsList}
             <div class="border rounded-xl p-5 bg-white shadow-sm mb-3 hover:shadow-md transition-shadow">
                 <div class="flex justify-between items-start mb-2">
                     <div>
-                        <div class="font-bold text-lg text-gray-800">${o.studentName}</div>
-                        <div class="text-xs text-gray-500 font-mono">#${o.shortId} • ${o.timestamp ? new Date(o.timestamp.seconds*1000).toLocaleDateString() : ''}</div>
+                        <div class="font-bold text-lg text-gray-800">${escapeHtml(o.studentName)}</div>
+                        <div class="text-xs text-gray-500 font-mono">#${escapeHtml(o.shortId)} • ${o.timestamp ? new Date(o.timestamp.seconds*1000).toLocaleDateString() : ''}</div>
                     </div>
                     <span class="${o.status==='Paid'?'bg-green-100 text-green-700 border-green-200':'bg-yellow-100 text-yellow-700 border-yellow-200'} text-xs px-2 py-1 rounded border font-bold uppercase tracking-wider">
                         ${o.status==='Paid'?'PAID':(o.status==='Processing'?'PROSES':'BARU')}
                     </span>
                 </div>
-                <div class="text-sm text-gray-600 mb-3 flex items-center gap-2"><i class="fas fa-graduation-cap text-gray-400"></i> Kelas: ${o.studentClass}</div>
+                <div class="text-sm text-gray-600 mb-3 flex items-center gap-2"><i class="fas fa-graduation-cap text-gray-400"></i> Kelas: ${escapeHtml(o.studentClass)}</div>
                 <div class="pt-3 border-t border-dashed border-gray-200 flex justify-between items-center">
                     <span class="font-bold text-blue-600 text-lg">RM ${o.total.toFixed(2)}</span>
                     ${actionBtn}
@@ -1609,6 +1661,14 @@ ${itemsList}
         else showToast('Ralat data, sila cari semula.', 'error');
     }
     document.addEventListener('DOMContentLoaded', () => {
+        // Log masuk secara anonymous supaya Rules boleh validate 'request.auth != null'
+        // Ini penting jika rules memerlukan sekurang-kurangnya identiti anonymous
+        if (!auth.currentUser) {
+            auth.signInAnonymously().catch(error => {
+                console.error("Gagal log masuk anonymous:", error);
+            });
+        }
+
         loadClasses(); loadItems(); loadPackages(); loadFees();
         loadSettings();
     });
