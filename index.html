@@ -439,6 +439,7 @@
                 <ul class="list-disc ml-4 space-y-1">
                     <li>Sila cetak atau simpan PDF ini.</li>
                     <li>Tunjukkan PDF kepada guru kelas.</li>
+                    <li><strong>Bayaran & Ambil Buku:</strong><br>8 Jan 2026 (9.00 Pagi - 1.00 Tgh Hari)</li>
                 </ul>
            </div>
 
@@ -516,6 +517,10 @@
                </button>
                <button onclick="showAdminTab('ordersTab')" class="nav-item w-full text-left px-4 py-3 rounded-xl text-gray-600 font-medium hover:bg-gray-50 transition-all flex items-center gap-3">
                    <i class="fas fa-receipt w-5 text-center"></i> Tempahan
+               </button>
+               <!-- ADDED NAMETAG BUTTON -->
+               <button onclick="showAdminTab('nametagTab')" class="nav-item w-full text-left px-4 py-3 rounded-xl text-gray-600 font-medium hover:bg-gray-50 transition-all flex items-center gap-3">
+                   <i class="fas fa-id-badge w-5 text-center"></i> Tempahan Nametag
                </button>
                <button onclick="showAdminTab('itemsTab')" class="nav-item w-full text-left px-4 py-3 rounded-xl text-gray-600 font-medium hover:bg-gray-50 transition-all flex items-center gap-3">
                    <i class="fas fa-box w-5 text-center"></i> Inventori Barang
@@ -596,6 +601,44 @@
                            <div id="recentActivityLog" class="space-y-3 text-sm"></div>
                        </div>
                    </div>
+               </div>
+
+               <!-- ADDED NAMETAG TAB CONTENT -->
+               <div id="nametagTab" class="admin-tab-content hidden fade-in">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col h-full">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-800">Tempahan Nametag</h2>
+                                <p class="text-gray-500 text-sm">Senarai pelajar yang menempah nametag.</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="downloadNametagPDF()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-bold shadow-md flex items-center gap-2 text-sm transition-all">
+                                    <i class="fas fa-file-pdf"></i> PDF
+                                </button>
+                                <button onclick="downloadNametagCSV()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl font-bold shadow-md flex items-center gap-2 text-sm transition-all">
+                                    <i class="fas fa-file-excel"></i> Excel
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto border border-gray-200 rounded-xl">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-gray-50 text-gray-600 font-bold border-b border-gray-200">
+                                    <tr>
+                                        <th class="p-4 w-12 text-center">#</th>
+                                        <th class="p-4">Nama Pelajar</th>
+                                        <th class="p-4">Kelas</th>
+                                        <th class="p-4 bg-yellow-50 text-yellow-800 border-x border-yellow-100">Nama Pada Nametag</th>
+                                        <th class="p-4 text-center">Kuantiti</th>
+                                        <th class="p-4 text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="nametagTableBody" class="divide-y divide-gray-100 bg-white">
+                                    <tr><td colspan="6" class="p-6 text-center text-gray-400">Sila tunggu, memuatkan data...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                </div>
 
                <!-- 2. INVENTORY ITEMS -->
@@ -1391,6 +1434,7 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
 
         if(id === 'analysisTab') renderAnalysis();
         if(id === 'ordersTab') loadOrders();
+        if(id === 'nametagTab') renderNametags(); // ADDED
         if(id === 'itemsTab') loadItemsAdmin();
         if(id === 'feesTab') loadFeesAdmin();
         if(id === 'packagesTab') loadPackagesAdmin();
@@ -1400,6 +1444,100 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
     async function loadAdminData() {
         await Promise.all([loadClasses(), loadItems(), loadPackages(), loadFees(), loadTelegramSettings()]);
         renderAnalysis();
+    }
+
+    // --- ADMIN: NAMETAGS (NEW FUNCTION) ---
+    function renderNametags() {
+        const tbody = document.getElementById('nametagTableBody');
+        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Memuatkan data...</td></tr>';
+        
+        // Filter orders that have nametag field and is not empty
+        const nametagOrders = adminOrdersData.filter(o => o.nametag && o.nametag.trim() !== "");
+        
+        if (nametagOrders.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Tiada tempahan nametag dijumpai dalam rekod semasa.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = '';
+        nametagOrders.forEach((o, index) => {
+            const statusColor = o.status === 'Paid' ? 'text-green-600' : (o.status === 'Processing' ? 'text-blue-600' : 'text-yellow-600');
+            tbody.innerHTML += `
+            <tr class="hover:bg-gray-50 border-b border-gray-100 last:border-0">
+                <td class="p-4 text-center font-mono text-gray-400">${index + 1}</td>
+                <td class="p-4 font-bold text-gray-700">${escapeHtml(o.studentName)}</td>
+                <td class="p-4">${escapeHtml(o.studentClass)}</td>
+                <td class="p-4 bg-yellow-50 text-yellow-800 font-mono font-bold tracking-wider border-x border-yellow-100 uppercase">${escapeHtml(o.nametag)}</td>
+                <td class="p-4 text-center">1 Set (3 Keping)</td>
+                <td class="p-4 text-center font-bold ${statusColor}">${o.status || 'New'}</td>
+            </tr>`;
+        });
+    }
+
+    function downloadNametagPDF() {
+        const nametagOrders = adminOrdersData.filter(o => o.nametag && o.nametag.trim() !== "");
+        if (nametagOrders.length === 0) { showToast('Tiada data untuk dimuat turun', 'error'); return; }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.setFontSize(18);
+        doc.text("Senarai Tempahan Nametag", 14, 20);
+        doc.setFontSize(10);
+        doc.text(`Tarikh: ${new Date().toLocaleDateString()}`, 14, 28);
+
+        const tableData = nametagOrders.map((o, i) => [
+            i + 1,
+            o.studentName,
+            o.studentClass,
+            o.nametag.toUpperCase(),
+            "1 Set (3 Keping)",
+            o.status || 'New'
+        ]);
+
+        doc.autoTable({
+            startY: 35,
+            head: [['#', 'Nama Pelajar', 'Kelas', 'Nama Pada Nametag', 'Kuantiti', 'Status']],
+            body: tableData,
+            theme: 'grid',
+            headStyles: { fillColor: [255, 193, 7] , textColor: [0,0,0] }, // Yellow header
+            columnStyles: {
+                0: { cellWidth: 10, halign: 'center' },
+                3: { fontStyle: 'bold' },
+                4: { halign: 'center' },
+                5: { halign: 'center' }
+            }
+        });
+
+        doc.save("Senarai_Nametag.pdf");
+    }
+
+    function downloadNametagCSV() {
+        const nametagOrders = adminOrdersData.filter(o => o.nametag && o.nametag.trim() !== "");
+        if (nametagOrders.length === 0) { showToast('Tiada data untuk dimuat turun', 'error'); return; }
+
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "No,Nama Pelajar,Kelas,Nama Nametag,Kuantiti,Status\n";
+
+        nametagOrders.forEach((o, index) => {
+            const row = [
+                index + 1,
+                `"${o.studentName}"`,
+                `"${o.studentClass}"`,
+                `"${o.nametag}"`,
+                "1 Set (3 Keping)",
+                o.status || 'New'
+            ];
+            csvContent += row.join(",") + "\n";
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "Senarai_Nametag.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     // --- ADMIN: ANALYSIS ---
