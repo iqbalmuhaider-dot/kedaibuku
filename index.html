@@ -731,9 +731,17 @@
                         <div id="packagesListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
                     </div>
                </div>
+
                <div id="feesTab" class="admin-tab-content hidden fade-in">
-                   <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                       <div class="flex justify-between items-center mb-6"><h2 class="text-xl font-bold">Yuran PIBG</h2><button onclick="showAddFeeForm()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Tambah Yuran</button></div>
+                   <!-- Section 1: Urus Yuran (Tambah/Buang Jenis Yuran) -->
+                   <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+                       <div class="flex justify-between items-center mb-6">
+                           <div>
+                               <h2 class="text-xl font-bold text-gray-800">Tetapan Jenis Yuran</h2>
+                               <p class="text-gray-500 text-sm">Tambah atau buang item yuran yang ditawarkan.</p>
+                           </div>
+                           <button onclick="showAddFeeForm()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Tambah Yuran</button>
+                       </div>
                        <div id="addFeeForm" class="hidden bg-gray-50 p-4 rounded-xl mb-4 border border-gray-200">
                            <input id="newFeeName" placeholder="Nama Yuran" class="w-full p-2 border rounded mb-2">
                            <input id="newFeeAmount" type="number" placeholder="Jumlah (RM)" class="w-full p-2 border rounded mb-2">
@@ -743,7 +751,44 @@
                        </div>
                        <table class="w-full text-sm"><thead class="bg-gray-50 font-bold text-gray-500"><tr><th class="p-3">Nama</th><th class="p-3 text-right">Jumlah</th><th class="p-3 text-center">Hapus</th></tr></thead><tbody id="feesAdminTableBody" class="divide-y"></tbody></table>
                    </div>
+
+                   <!-- Section 2: Senarai Pembayar (New) -->
+                   <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-800">Senarai Bayaran Yuran Pelajar</h2>
+                                <p class="text-gray-500 text-sm">Rekod pelajar yang telah menempah item yuran.</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="downloadFeesPDF()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-bold shadow-md flex items-center gap-2 text-sm transition-all">
+                                    <i class="fas fa-file-pdf"></i> PDF
+                                </button>
+                                <button onclick="downloadFeesCSV()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl font-bold shadow-md flex items-center gap-2 text-sm transition-all">
+                                    <i class="fas fa-file-excel"></i> Excel
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto border border-gray-200 rounded-xl">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-gray-50 text-gray-600 font-bold border-b border-gray-200">
+                                    <tr>
+                                        <th class="p-4 w-12 text-center">#</th>
+                                        <th class="p-4">Nama Pelajar</th>
+                                        <th class="p-4">Kelas</th>
+                                        <th class="p-4">Butiran Yuran</th>
+                                        <th class="p-4 text-right">Jumlah Yuran</th>
+                                        <th class="p-4 text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="feesPaymentTableBody" class="divide-y divide-gray-100 bg-white">
+                                    <tr><td colspan="6" class="p-6 text-center text-gray-400">Memuatkan data...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                   </div>
                </div>
+
                <div id="classesTab" class="admin-tab-content hidden fade-in">
                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                        <h2 class="text-xl font-bold mb-4">Senarai Kelas</h2>
@@ -842,6 +887,14 @@
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
     }
+
+    // HELPER: Detect if item is a shirt/jersey that needs size option
+    function isShirt(name) {
+        return /baju|t-shirt|jersi|shirt|sukan|pj/i.test(name);
+    }
+
+    // KONFIGURASI HARGA TAMBAHAN LENGAN PANJANG
+    const LONG_SLEEVE_EXTRA_CHARGE = 3.00; // Tukar nilai ini ikut keperluan (RM)
     
     let confirmCallback = null;
     function showConfirm(msg, cb) {
@@ -1030,8 +1083,12 @@
       const tableData = [];
       if(orderData.items) {
           Object.values(orderData.items).forEach(i => {
+              // Add sleeve info to PDF if present
+              let displayName = i.name;
+              if (i.variant) displayName += ` (${i.variant})`;
+              
               tableData.push([
-                  i.name, 
+                  displayName, 
                   i.quantity, 
                   `RM ${i.price.toFixed(2)}`, 
                   `RM ${(i.price * i.quantity).toFixed(2)}`
@@ -1116,7 +1173,11 @@
             if(p.items && p.items.length > 0) {
                 p.items.forEach(pi => {
                     const itemData = allItems.find(i => i.id === pi.itemId);
-                    if(itemData) itemsListHtml += `<li>${escapeHtml(itemData.name)} <span class="text-gray-400 text-[10px]">(x${pi.qty})</span></li>`;
+                    if(itemData) {
+                        // Check if shirt to show generic variant info
+                        const suffix = isShirt(itemData.name) ? ' (Pilih Lengan)' : '';
+                        itemsListHtml += `<li>${escapeHtml(itemData.name)}${suffix} <span class="text-gray-400 text-[10px]">(x${pi.qty})</span></li>`;
+                    }
                 });
             } else { itemsListHtml += '<li>Tiada barang tersenarai</li>'; }
             itemsListHtml += '</ul>';
@@ -1142,7 +1203,19 @@
             if(pkg && pkg.items) {
                 pkg.items.forEach(pi => {
                     const item = allItems.find(i => i.id === pi.itemId);
-                    if(item) cart[item.id] = { ...item, quantity: pi.qty, locked: true, type:'item' };
+                    if(item) {
+                        // Default variant for shirts is "Lengan Pendek"
+                        const defaultVariant = isShirt(item.name) ? 'Lengan Pendek' : null;
+                        // Simpan basePrice (harga asal) untuk rujukan pengiraan nanti
+                        cart[item.id] = { 
+                            ...item, 
+                            quantity: pi.qty, 
+                            locked: true, 
+                            type:'item', 
+                            variant: defaultVariant,
+                            basePrice: item.price // PENTING: Simpan harga asal
+                        };
+                    }
                 });
             }
         }
@@ -1166,14 +1239,45 @@
             const inCart = cart[item.id];
             const qty = inCart ? inCart.quantity : 0;
             const isLocked = inCart && inCart.locked;
-            if(qty > 0) total += (item.price * qty);
+            
+            // Gunakan harga dalam cart jika ada (sebab mungkin dah update variant), kalau tak guna harga asal db
+            const currentPrice = inCart ? inCart.price : item.price;
+            
+            if(qty > 0) total += (currentPrice * qty);
+            
+            // Logic to show variant dropdown if it's a shirt
+            let variantSelector = '';
+            let priceDisplay = `RM ${currentPrice.toFixed(2)}`;
+
+            if(isShirt(item.name) && (qty > 0)) {
+                const currentVariant = (inCart && inCart.variant) ? inCart.variant : 'Lengan Pendek';
+                
+                // Show extra cost info
+                if(currentVariant === 'Lengan Panjang') {
+                    priceDisplay += `<div class="text-[10px] text-blue-600 font-bold">(+RM ${LONG_SLEEVE_EXTRA_CHARGE.toFixed(2)})</div>`;
+                }
+
+                variantSelector = `
+                    <div class="mt-1">
+                        <select onchange="updateCartVariant('${item.id}', this.value)" class="text-[10px] md:text-xs border border-gray-300 rounded p-1 bg-white text-gray-700 outline-none focus:border-blue-500 block w-full md:w-auto shadow-sm">
+                            <option value="Lengan Pendek" ${currentVariant === 'Lengan Pendek' ? 'selected' : ''}>Lengan Pendek (Standard)</option>
+                            <option value="Lengan Panjang" ${currentVariant === 'Lengan Panjang' ? 'selected' : ''}>Lengan Panjang (+RM ${LONG_SLEEVE_EXTRA_CHARGE})</option>
+                        </select>
+                    </div>
+                `;
+            }
+
             const input = isLocked 
                 ? `<span class="font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded text-xs">PAKEJ (${qty})</span>`
                 : `<input type="number" min="0" value="${qty}" class="w-16 border rounded text-center p-1" onchange="updateCart('${item.id}', this.value)">`;
+            
             tbody.innerHTML += `
             <tr class="${qty > 0 ? 'bg-blue-50' : ''}">
-                <td class="px-4 py-3 font-medium">${escapeHtml(item.name)}</td>
-                <td class="px-4 py-3 text-right">RM ${item.price.toFixed(2)}</td>
+                <td class="px-4 py-3 font-medium">
+                    ${escapeHtml(item.name)}
+                    ${variantSelector}
+                </td>
+                <td class="px-4 py-3 text-right font-mono">${priceDisplay}</td>
                 <td class="px-4 py-3 text-center">${input}</td>
             </tr>`;
         });
@@ -1183,9 +1287,44 @@
     function updateCart(id, qty) {
         qty = parseInt(qty);
         const item = allItems.find(i => i.id === id);
-        if(qty > 0) cart[id] = { ...item, quantity: qty, type: 'item', locked: false };
+        if(qty > 0) {
+            // Preserve existing variant or set default
+            const existingVariant = cart[id] ? cart[id].variant : null;
+            const newVariant = existingVariant || (isShirt(item.name) ? 'Lengan Pendek' : null);
+            
+            // Kira harga based on variant semasa
+            let finalPrice = item.price;
+            if(newVariant === 'Lengan Panjang') finalPrice += LONG_SLEEVE_EXTRA_CHARGE;
+
+            cart[id] = { 
+                ...item, 
+                quantity: qty, 
+                type: 'item', 
+                locked: false, 
+                variant: newVariant,
+                basePrice: item.price, // Simpan harga asal
+                price: finalPrice      // Simpan harga semasa (selepas caj)
+            };
+        }
         else if(cart[id] && !cart[id].locked) delete cart[id];
         renderItemsStep3();
+    }
+
+    function updateCartVariant(id, val) {
+        if(cart[id]) {
+            cart[id].variant = val;
+            
+            // LOGIK HARGA BERUBAH DI SINI
+            // Jika Lengan Panjang, tambah caj. Jika Pendek, balik ke harga asal (basePrice).
+            if(val === 'Lengan Panjang') {
+                cart[id].price = cart[id].basePrice + LONG_SLEEVE_EXTRA_CHARGE;
+            } else {
+                cart[id].price = cart[id].basePrice;
+            }
+            
+            // Re-render untuk kemaskini paparan harga dan total
+            renderItemsStep3();
+        }
     }
 
     function backToStep1() { 
@@ -1253,7 +1392,14 @@
         Object.values(cart).forEach(item => {
             const rowTotal = item.price * item.quantity;
             total += rowTotal;
-            div.innerHTML += `<div class="flex justify-between"><span>${escapeHtml(item.name)} <span class="text-xs text-gray-400">x${item.quantity}</span></span><span class="font-bold">RM ${rowTotal.toFixed(2)}</span></div>`;
+            // Display variant info in summary
+            let displayName = escapeHtml(item.name);
+            if(item.variant) displayName += ` <span class="text-[10px] text-blue-600 font-bold bg-blue-50 px-1 rounded border border-blue-100 ml-1">${item.variant}</span>`;
+            
+            div.innerHTML += `<div class="flex justify-between items-start mb-2 last:mb-0">
+                <span class="leading-tight">${displayName} <br><span class="text-xs text-gray-400">x${item.quantity}</span></span>
+                <span class="font-bold whitespace-nowrap">RM ${rowTotal.toFixed(2)}</span>
+            </div>`;
         });
         document.querySelector('.grandTotalDisplay').textContent = total.toFixed(2);
         
@@ -1319,7 +1465,9 @@
         const date = new Date().toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' });
         let itemsList = "";
         Object.values(order.items).forEach(i => {
-            itemsList += `- ${i.name} (x${i.quantity})\n`;
+            let itemName = i.name;
+            if(i.variant) itemName += ` (${i.variant})`;
+            itemsList += `- ${itemName} (x${i.quantity})\n`;
         });
 
         const message = `
@@ -1434,9 +1582,9 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
 
         if(id === 'analysisTab') renderAnalysis();
         if(id === 'ordersTab') loadOrders();
-        if(id === 'nametagTab') renderNametags(); // ADDED
+        if(id === 'nametagTab') renderNametags(); 
         if(id === 'itemsTab') loadItemsAdmin();
-        if(id === 'feesTab') loadFeesAdmin();
+        if(id === 'feesTab') { loadFeesAdmin(); renderFeeOrders(); } // Modified to call renderFeeOrders
         if(id === 'packagesTab') loadPackagesAdmin();
         if(id === 'classesTab') updateClassesListAdmin();
         if(id === 'settingsTab') loadSettings();
@@ -1444,6 +1592,130 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
     async function loadAdminData() {
         await Promise.all([loadClasses(), loadItems(), loadPackages(), loadFees(), loadTelegramSettings()]);
         renderAnalysis();
+    }
+
+    // --- ADMIN: FEES LIST LOGIC (NEW) ---
+    function renderFeeOrders() {
+        const tbody = document.getElementById('feesPaymentTableBody');
+        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Memuatkan data...</td></tr>';
+        
+        // Filter orders that have items with type 'fee'
+        const feeOrders = adminOrdersData.filter(o => o.items && Object.values(o.items).some(i => i.type === 'fee'));
+        
+        if (feeOrders.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Tiada rekod bayaran yuran dijumpai.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = '';
+        feeOrders.forEach((o, index) => {
+            const statusColor = o.status === 'Paid' ? 'text-green-600' : (o.status === 'Processing' ? 'text-blue-600' : 'text-yellow-600');
+            
+            // Extract fee details string and total amount for fees only
+            let feeDetails = [];
+            let feeTotal = 0;
+            Object.values(o.items).forEach(i => {
+                if(i.type === 'fee') {
+                    feeDetails.push(i.name);
+                    feeTotal += (i.price * i.quantity);
+                }
+            });
+
+            tbody.innerHTML += `
+            <tr class="hover:bg-gray-50 border-b border-gray-100 last:border-0">
+                <td class="p-4 text-center font-mono text-gray-400">${index + 1}</td>
+                <td class="p-4 font-bold text-gray-700">${escapeHtml(o.studentName)}</td>
+                <td class="p-4">${escapeHtml(o.studentClass)}</td>
+                <td class="p-4 text-gray-600 text-xs">${escapeHtml(feeDetails.join(', '))}</td>
+                <td class="p-4 text-right font-mono">RM ${feeTotal.toFixed(2)}</td>
+                <td class="p-4 text-center font-bold ${statusColor}">${o.status || 'New'}</td>
+            </tr>`;
+        });
+    }
+
+    function downloadFeesPDF() {
+        const feeOrders = adminOrdersData.filter(o => o.items && Object.values(o.items).some(i => i.type === 'fee'));
+        if (feeOrders.length === 0) { showToast('Tiada data untuk dimuat turun', 'error'); return; }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.setFontSize(18);
+        doc.text("Senarai Bayaran Yuran PIBG", 14, 20);
+        doc.setFontSize(10);
+        doc.text(`Tarikh: ${new Date().toLocaleDateString()}`, 14, 28);
+
+        const tableData = feeOrders.map((o, i) => {
+            let feeNames = [];
+            let feeTotal = 0;
+            Object.values(o.items).forEach(itm => {
+                if(itm.type === 'fee') {
+                    feeNames.push(itm.name);
+                    feeTotal += (itm.price * itm.quantity);
+                }
+            });
+
+            return [
+                i + 1,
+                o.studentName,
+                o.studentClass,
+                feeNames.join(', '),
+                `RM ${feeTotal.toFixed(2)}`,
+                o.status || 'New'
+            ];
+        });
+
+        doc.autoTable({
+            startY: 35,
+            head: [['#', 'Nama Pelajar', 'Kelas', 'Butiran', 'Jumlah', 'Status']],
+            body: tableData,
+            theme: 'grid',
+            headStyles: { fillColor: [37, 99, 235], textColor: [255,255,255] },
+            columnStyles: {
+                0: { cellWidth: 10, halign: 'center' },
+                4: { halign: 'right' },
+                5: { halign: 'center' }
+            }
+        });
+
+        doc.save("Senarai_Yuran_PIBG.pdf");
+    }
+
+    function downloadFeesCSV() {
+        const feeOrders = adminOrdersData.filter(o => o.items && Object.values(o.items).some(i => i.type === 'fee'));
+        if (feeOrders.length === 0) { showToast('Tiada data untuk dimuat turun', 'error'); return; }
+
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "No,Nama Pelajar,Kelas,Butiran Yuran,Jumlah Yuran (RM),Status\n";
+
+        feeOrders.forEach((o, index) => {
+            let feeNames = [];
+            let feeTotal = 0;
+            Object.values(o.items).forEach(itm => {
+                if(itm.type === 'fee') {
+                    feeNames.push(itm.name);
+                    feeTotal += (itm.price * itm.quantity);
+                }
+            });
+
+            const row = [
+                index + 1,
+                `"${o.studentName}"`,
+                `"${o.studentClass}"`,
+                `"${feeNames.join(', ')}"`,
+                feeTotal.toFixed(2),
+                o.status || 'New'
+            ];
+            csvContent += row.join(",") + "\n";
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "Senarai_Yuran_PIBG.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     // --- ADMIN: NAMETAGS (NEW FUNCTION) ---
@@ -1653,7 +1925,9 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
         if(!o) return;
         let itemsHtml = '';
         Object.values(o.items).forEach(i => {
-             itemsHtml += `<div class="flex justify-between py-2 border-b border-dashed border-gray-200 last:border-0"><span>${escapeHtml(i.name)} <span class="text-gray-400 text-xs">x${i.quantity}</span></span><span class="font-mono">RM ${(i.price*i.quantity).toFixed(2)}</span></div>`;
+             let displayName = escapeHtml(i.name);
+             if(i.variant) displayName += ` (${i.variant})`;
+             itemsHtml += `<div class="flex justify-between py-2 border-b border-dashed border-gray-200 last:border-0"><span>${displayName} <span class="text-gray-400 text-xs">x${i.quantity}</span></span><span class="font-mono">RM ${(i.price*i.quantity).toFixed(2)}</span></div>`;
         });
         document.getElementById('orderDetailsContent').innerHTML = `<div class="grid grid-cols-2 gap-4 mb-4 bg-gray-50 p-4 rounded-xl border border-gray-100"><div><p class="text-xs text-gray-400 uppercase">Pelajar</p><p class="font-bold">${escapeHtml(o.studentName)}</p></div><div><p class="text-xs text-gray-400 uppercase">Kelas</p><p class="font-bold">${escapeHtml(o.studentClass)}</p></div><div><p class="text-xs text-gray-400 uppercase">Ibu Bapa</p><p class="font-bold">${escapeHtml(o.parentName)}</p></div><div><p class="text-xs text-gray-400 uppercase">Telefon</p><p class="font-bold">${escapeHtml(o.parentPhone)}</p></div></div>${o.nametag ? `<div class="bg-yellow-50 text-yellow-800 p-3 rounded-lg mb-4 text-center border border-yellow-200 font-bold">NAMETAG: ${escapeHtml(o.nametag)}</div>` : ''}<div class="bg-white border border-gray-200 rounded-xl p-4 mb-4"><h4 class="font-bold text-gray-700 mb-2 border-b pb-2">Item</h4>${itemsHtml}<div class="flex justify-between mt-3 pt-2 border-t font-bold text-lg"><span>Jumlah</span><span class="text-blue-600">RM ${o.total.toFixed(2)}</span></div></div><div class="text-xs text-gray-400 text-center">ID Rujukan: ${o.id}</div>`;
         document.getElementById('orderDetailsModal').classList.remove('hidden');
@@ -1774,14 +2048,10 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
         } catch (e) {
             console.log("Tidak dapat memuat turun payment_config (Mungkin sekatan rules untuk public):", e);
         }
-
-        // PERINGATAN: KITA TIDAK MEMUAT TURUN TELEGRAM TOKEN DI SINI
-        // INI KERANA RULES MENGHALANG PUBLIC DARIPADA MEMBACA TOKEN
-        // TOKEN HANYA AKAN DIMUAT TURUN APABILA ADMIN LOG MASUK
     }
 
     async function loadTelegramSettings() {
-        // Fungsi ini hanya dipanggil oleh Admin
+        // PINDAAN: Cuba muat turun untuk semua pengguna (Public & Admin)
         try {
             const t = await db.collection('settings').doc('telegram_settings').get();
             if(t.exists) { 
@@ -1789,11 +2059,16 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
                     botToken: t.data().botToken || '',
                     chatId: t.data().chatId || ''
                 };
-                document.getElementById('telegramBotToken').value = telegramConfig.botToken; 
-                document.getElementById('telegramChatId').value = telegramConfig.chatId; 
+                // Kemaskini input di Admin Panel jika wujud
+                const tokenInput = document.getElementById('telegramBotToken');
+                const chatInput = document.getElementById('telegramChatId');
+                if(tokenInput) tokenInput.value = telegramConfig.botToken; 
+                if(chatInput) chatInput.value = telegramConfig.chatId; 
+                
+                console.log("Tetapan Telegram berjaya dimuat turun.");
             }
         } catch (e) {
-            console.error("Gagal memuat turun tetapan Telegram (Mungkin bukan admin):", e);
+            console.error("Gagal memuat turun tetapan Telegram. Pastikan Firestore Rules membenarkan 'read' untuk 'settings/telegram_settings'.", e);
         }
     }
 
@@ -1879,6 +2154,7 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
 
         loadClasses(); loadItems(); loadPackages(); loadFees();
         loadSettings();
+        loadTelegramSettings(); // PANGGIL FUNGSI INI KETIKA APP MULA
     });
   </script>
  </body>
