@@ -195,7 +195,7 @@
                     <p class="text-gray-500 text-sm">Lihat status tempahan, cetak resit, atau invois terdahulu.</p>
                 </div>
                 <div class="relative z-10 mt-auto flex items-center text-orange-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
-                     Semak Sekarang <i class="fas fa-arrow-right ml-2"></i>
+                      Semak Sekarang <i class="fas fa-arrow-right ml-2"></i>
                 </div>
             </button>
           </div>
@@ -701,6 +701,7 @@
                                <thead class="bg-gray-50 text-gray-600 font-semibold border-b">
                                    <tr>
                                        <th class="p-4 w-10 text-center"><input type="checkbox" onchange="toggleSelectAll(this, 'order-checkbox')" class="rounded border-gray-300"></th>
+                                       <th class="p-4 w-12 text-center">#</th>
                                        <th class="p-4">ID / Tarikh</th>
                                        <th class="p-4">Pelajar</th>
                                        <th class="p-4">Kelas</th>
@@ -802,6 +803,16 @@
                <div id="settingsTab" class="admin-tab-content hidden fade-in">
                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                           <h3 class="font-bold mb-4">Status Sistem</h3>
+                           <div class="space-y-3">
+                               <label class="flex items-center gap-2 border p-3 rounded cursor-pointer hover:bg-gray-50">
+                                   <input type="checkbox" id="toggleTakingOrders"> <span class="font-medium">Terima Tempahan Baru</span>
+                               </label>
+                               <p class="text-xs text-gray-500">Jika dimatikan, ibu bapa tidak boleh membuat tempahan baru.</p>
+                               <button onclick="saveSystemStatus()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm w-full mt-2">Simpan Status</button>
+                           </div>
+                       </div>
+                       <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                            <h3 class="font-bold mb-4">Integrasi</h3>
                            <div class="space-y-4">
                                <div>
@@ -855,6 +866,7 @@
     let allItems = [], allPackages = [], allClasses = [], allFees = [], adminOrdersData = [];
     let cart = {}, currentOrderData = {}, selectedPackageId = null;
     let paymentConfig = { cash: true, online: true };
+    let systemConfig = { takingOrders: true }; // Default value
     
     // --- TELEGRAM CONFIGURATION ---
     // PENTING: Untuk demo public, masukkan token terus di sini jika database access denied.
@@ -973,7 +985,16 @@
         window.scrollTo(0,0);
     }
 
-    function openParentPanel() {
+    async function openParentPanel() {
+        // Semak status sistem sebelum membuka borang
+        try {
+            const s = await db.collection('settings').doc('system_config').get();
+            if(s.exists && s.data().takingOrders === false) {
+                 showToast('Maaf, tempahan telah ditutup buat masa ini.', 'error');
+                 return;
+            }
+        } catch(e) { console.error("Ralat semakan sistem:", e); }
+
         document.getElementById('landingPage').classList.add('hidden');
         document.getElementById('userInterface').classList.remove('hidden');
         document.getElementById('stepsHeader').classList.remove('hidden');
@@ -1144,9 +1165,23 @@
         if(!db) return;
         const doc = await db.collection('settings').doc('book_classes').get();
         allClasses = doc.exists && doc.data().list ? doc.data().list : [];
+        
+        // Populate Public Form Dropdown
         const s = document.getElementById('studentClass');
-        s.innerHTML = '<option value="">-- Pilih Kelas --</option>';
-        allClasses.forEach(c => s.add(new Option(c,c)));
+        if(s) {
+            s.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+            allClasses.forEach(c => s.add(new Option(c,c)));
+        }
+
+        // Populate Admin Filter Dropdown
+        const adminFilter = document.getElementById('adminClassFilter');
+        if(adminFilter) {
+             const savedVal = adminFilter.value; // Preserve current selection if reloading
+             adminFilter.innerHTML = '<option value="">Semua Kelas</option>';
+             allClasses.forEach(c => adminFilter.add(new Option(c,c)));
+             adminFilter.value = savedVal;
+        }
+
         updateClassesListAdmin();
     }
 
@@ -1876,7 +1911,8 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
 
     // --- ADMIN: ORDERS ---
     async function loadOrders() {
-        const s = await db.collection('book_orders').orderBy('timestamp', 'desc').limit(50).get();
+        // Updated: Removed limit(50) to fetch all orders
+        const s = await db.collection('book_orders').orderBy('timestamp', 'desc').get();
         adminOrdersData = []; s.forEach(d => adminOrdersData.push({id: d.id, ...d.data()}));
         renderOrders();
     }
@@ -1884,9 +1920,15 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
         const tbody = document.getElementById('ordersTableBody');
         tbody.innerHTML = '';
         const filter = document.getElementById('adminSearchInput').value.toLowerCase();
-        adminOrdersData.filter(o => 
-            !filter || (o.studentName && o.studentName.toLowerCase().includes(filter)) || (o.shortId && o.shortId.toLowerCase().includes(filter))
-        ).forEach(o => {
+        const classFilter = document.getElementById('adminClassFilter').value; // Updated: Get selected class
+
+        // Filter first to ensure correct indexing
+        const filteredData = adminOrdersData.filter(o => 
+            (!filter || (o.studentName && o.studentName.toLowerCase().includes(filter)) || (o.shortId && o.shortId.toLowerCase().includes(filter))) &&
+            (!classFilter || o.studentClass === classFilter) // Updated: Apply class filter
+        );
+
+        filteredData.forEach((o, index) => {
             const date = o.timestamp ? new Date(o.timestamp.seconds*1000).toLocaleDateString() : '-';
             const status = o.status || 'New';
             let actionButtons = '';
@@ -1904,6 +1946,7 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
             tbody.innerHTML += `
             <tr class="hover:bg-gray-50 border-b border-gray-100 last:border-0 cursor-pointer" onclick="viewOrderDetails('${o.id}')">
                 <td class="p-4 text-center"><input type="checkbox" value="${o.id}" class="order-checkbox rounded border-gray-300" onclick="event.stopPropagation()"></td>
+                <td class="p-4 text-center font-mono text-gray-500 font-bold">${index + 1}</td> <!-- Numbering Column -->
                 <td class="p-4 text-xs text-gray-500"><span class="font-mono font-bold text-gray-800">#${escapeHtml(o.shortId)}</span><br>${date}</td>
                 <td class="p-4 font-medium text-gray-800">${escapeHtml(o.studentName)}</td>
                 <td class="p-4 text-gray-600">${escapeHtml(o.studentClass)}</td>
@@ -2035,7 +2078,7 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
     async function loadSettings() {
         if(!db) return;
         
-        // 1. Muat turun Tetapan Pembayaran (Public Boleh Baca)
+        // 1. Muat turun Tetapan Pembayaran & Status Sistem (Public Boleh Baca)
         try {
             const p = await db.collection('settings').doc('payment_config').get();
             if(p.exists) { 
@@ -2045,8 +2088,17 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
                 if(c) c.checked = paymentConfig.cash;
                 if(o) o.checked = paymentConfig.online;
             }
+
+            // Load System Config (Status Tempahan)
+            const s = await db.collection('settings').doc('system_config').get();
+            if(s.exists) {
+                systemConfig = s.data();
+                const t = document.getElementById('toggleTakingOrders');
+                // Default to true if field doesn't exist
+                if(t) t.checked = (systemConfig.takingOrders !== false);
+            }
         } catch (e) {
-            console.log("Tidak dapat memuat turun payment_config (Mungkin sekatan rules untuk public):", e);
+            console.log("Ralat memuat turun tetapan:", e);
         }
     }
 
@@ -2079,6 +2131,14 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
         paymentConfig = { cash: c, online: o };
         showToast('Tetapan bayaran disimpan', 'success');
     }
+
+    async function saveSystemStatus() {
+        const t = document.getElementById('toggleTakingOrders').checked;
+        await db.collection('settings').doc('system_config').set({ takingOrders: t }, { merge: true });
+        systemConfig.takingOrders = t;
+        showToast('Status sistem dikemaskini', 'success');
+    }
+
     async function saveTelegramSettings() {
         const t = document.getElementById('telegramBotToken').value, c = document.getElementById('telegramChatId').value;
         await db.collection('settings').doc('telegram_settings').set({botToken:t, chatId:c});
