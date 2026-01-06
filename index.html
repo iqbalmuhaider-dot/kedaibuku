@@ -868,12 +868,14 @@
     let paymentConfig = { cash: true, online: true };
     let systemConfig = { takingOrders: true }; // Default value
     
+    // Global variable for editing
+    let editingOrderId = null;
+    let tempEditCart = {};
+
     // --- TELEGRAM CONFIGURATION ---
-    // PENTING: Untuk demo public, masukkan token terus di sini jika database access denied.
-    // Jika tidak, sistem akan cuba ambil dari database (hanya Admin boleh baca).
     let telegramConfig = { 
-        botToken: '', // Contoh: '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11'
-        chatId: ''    // Contoh: '-100123456789'
+        botToken: '', 
+        chatId: ''
     }; 
 
     let lastOrderData = null; 
@@ -889,7 +891,6 @@
         setTimeout(() => t.remove(), 3000);
     }
     
-    // NEW: Function to escape HTML special characters to prevent XSS
     function escapeHtml(text) {
         if (!text) return text;
         return String(text)
@@ -900,13 +901,11 @@
             .replace(/'/g, "&#039;");
     }
 
-    // HELPER: Detect if item is a shirt/jersey that needs size option
     function isShirt(name) {
         return /baju|t-shirt|jersi|shirt|sukan|pj/i.test(name);
     }
 
-    // KONFIGURASI HARGA TAMBAHAN LENGAN PANJANG
-    const LONG_SLEEVE_EXTRA_CHARGE = 3.00; // Tukar nilai ini ikut keperluan (RM)
+    const LONG_SLEEVE_EXTRA_CHARGE = 3.00;
     
     let confirmCallback = null;
     function showConfirm(msg, cb) {
@@ -918,23 +917,18 @@
     function executeConfirm() { if(confirmCallback) confirmCallback(); closeConfirm(); }
 
     function showSection(id) {
-        // Updated visibility logic using 'force-hidden' to ensure flex containers are hidden properly
-        // This prevents the overlap issue seen previously
         const sections = ['orderSection', 'statusSection'];
-        
         sections.forEach(secId => {
             const el = document.getElementById(secId);
             if(el) {
-                // Add the forceful hidden class to override any flex display
                 el.classList.add('force-hidden');
                 el.classList.remove('fade-in');
             }
         });
-
         const target = document.getElementById(id);
         if(target) {
             target.classList.remove('force-hidden');
-            target.classList.remove('hidden'); // Also remove standard hidden if present
+            target.classList.remove('hidden'); 
             target.classList.add('fade-in');
         }
         window.scrollTo(0,0);
@@ -986,7 +980,6 @@
     }
 
     async function openParentPanel() {
-        // Semak status sistem sebelum membuka borang
         try {
             const s = await db.collection('settings').doc('system_config').get();
             if(s.exists && s.data().takingOrders === false) {
@@ -999,14 +992,10 @@
         document.getElementById('userInterface').classList.remove('hidden');
         document.getElementById('stepsHeader').classList.remove('hidden');
         document.getElementById('successModal').classList.add('hidden');
-        
-        // Hide Status, Show Order
-        document.getElementById('statusSection').classList.add('force-hidden'); // Use force-hidden
+        document.getElementById('statusSection').classList.add('force-hidden'); 
         document.getElementById('orderSection').classList.remove('force-hidden');
         document.getElementById('orderSection').classList.remove('hidden');
-        
         showSection('orderSection');
-        
         ['step2','step3','step4','step5'].forEach(s => document.getElementById(s).classList.add('hidden'));
         document.getElementById('step1').classList.remove('hidden');
         document.getElementById('pageTitleLabel').innerText = "Proses Tempahan";
@@ -1018,16 +1007,11 @@
     function openStatusPanel() {
         document.getElementById('landingPage').classList.add('hidden');
         document.getElementById('userInterface').classList.remove('hidden');
-        
-        // Hide Order components
-        document.getElementById('orderSection').classList.add('force-hidden'); // Use force-hidden
+        document.getElementById('orderSection').classList.add('force-hidden'); 
         document.getElementById('orderStepper').classList.add('hidden'); 
-        
-        // Show Status
         document.getElementById('statusSection').classList.remove('force-hidden');
         document.getElementById('statusSection').classList.remove('hidden');
         showSection('statusSection');
-        
         document.getElementById('pageTitleLabel').innerText = "Semakan Status";
         window.scrollTo(0,0);
     }
@@ -1036,23 +1020,19 @@
     function generateInvoicePDF(orderData, returnBlob = false) {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-      
-      // Colors
-      const primaryColor = [37, 99, 235]; // Blue-600
-      const greenColor = [22, 163, 74];   // Green-600
-      const redColor = [220, 38, 38];     // Red-600
-      
+      const primaryColor = [37, 99, 235]; 
+      const greenColor = [22, 163, 74];   
+      const redColor = [220, 38, 38];     
       const isPaid = orderData.status === 'Paid';
       const themeColor = isPaid ? greenColor : primaryColor;
       const docTitle = isPaid ? 'RESIT RASMI' : 'INVOIS';
       const displayId = orderData.shortId || (orderData.orderId ? orderData.orderId.substring(0,8) : '---');
       const dateStr = orderData.timestamp ? new Date(orderData.timestamp.seconds*1000).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB');
 
-      // HEADER
       doc.setFont("helvetica", "bold");
       doc.setFontSize(20);
       doc.setTextColor(...themeColor);
-      doc.text(docTitle, 105, 20, {align: 'center'}); // Centered Title
+      doc.text(docTitle, 105, 20, {align: 'center'}); 
       
       doc.setFontSize(12);
       doc.setTextColor(0,0,0);
@@ -1061,16 +1041,10 @@
       doc.setFontSize(10);
       doc.text("SK Masjid Tanah (Integrasi)", 105, 35, {align: 'center'});
       doc.text("78300 Masjid Tanah, Melaka", 105, 40, {align: 'center'});
-      
-      // LINE
       doc.setLineWidth(0.5);
       doc.setDrawColor(200, 200, 200);
       doc.line(15, 45, 195, 45);
-
-      // INFO SECTION
       doc.setFontSize(10);
-      
-      // Left Side (Bill To)
       doc.setFont("helvetica", "bold");
       doc.text("Kepada:", 15, 55);
       doc.setFont("helvetica", "normal");
@@ -1079,7 +1053,6 @@
       doc.text(`Kelas: ${orderData.studentClass}`, 15, 70);
       if(orderData.nametag) doc.text(`Nametag: ${orderData.nametag}`, 15, 75);
 
-      // Right Side (Details)
       doc.setFont("helvetica", "bold");
       doc.text("Butiran:", 140, 55);
       doc.setFont("helvetica", "normal");
@@ -1100,14 +1073,11 @@
       }
       doc.setTextColor(0,0,0);
 
-      // TABLE
       const tableData = [];
       if(orderData.items) {
           Object.values(orderData.items).forEach(i => {
-              // Add sleeve info to PDF if present
               let displayName = i.name;
               if (i.variant) displayName += ` (${i.variant})`;
-              
               tableData.push([
                   displayName, 
                   i.quantity, 
@@ -1116,8 +1086,6 @@
               ]);
           });
       }
-      
-      // Add Footer Row for Total
       tableData.push([
           {content: 'JUMLAH BESAR', colSpan: 3, styles: {halign: 'right', fontStyle: 'bold'}}, 
           {content: `RM ${orderData.total.toFixed(2)}`, styles: {fontStyle: 'bold', textColor: themeColor}}
@@ -1138,14 +1106,13 @@
             cellPadding: 3
         },
         columnStyles: {
-            0: {cellWidth: 'auto'}, // Item
-            1: {cellWidth: 20, halign: 'center'}, // Qty
-            2: {cellWidth: 30, halign: 'right'}, // Price
-            3: {cellWidth: 30, halign: 'right'} // Total
+            0: {cellWidth: 'auto'}, 
+            1: {cellWidth: 20, halign: 'center'}, 
+            2: {cellWidth: 30, halign: 'right'}, 
+            3: {cellWidth: 30, halign: 'right'} 
         }
       });
       
-      // FOOTER NOTE
       const finalY = doc.lastAutoTable.finalY + 10;
       doc.setFontSize(8);
       doc.setTextColor(100, 100, 100);
@@ -1165,23 +1132,18 @@
         if(!db) return;
         const doc = await db.collection('settings').doc('book_classes').get();
         allClasses = doc.exists && doc.data().list ? doc.data().list : [];
-        
-        // Populate Public Form Dropdown
         const s = document.getElementById('studentClass');
         if(s) {
             s.innerHTML = '<option value="">-- Pilih Kelas --</option>';
             allClasses.forEach(c => s.add(new Option(c,c)));
         }
-
-        // Populate Admin Filter Dropdown
         const adminFilter = document.getElementById('adminClassFilter');
         if(adminFilter) {
-             const savedVal = adminFilter.value; // Preserve current selection if reloading
+             const savedVal = adminFilter.value; 
              adminFilter.innerHTML = '<option value="">Semua Kelas</option>';
              allClasses.forEach(c => adminFilter.add(new Option(c,c)));
              adminFilter.value = savedVal;
         }
-
         updateClassesListAdmin();
     }
 
@@ -1209,7 +1171,6 @@
                 p.items.forEach(pi => {
                     const itemData = allItems.find(i => i.id === pi.itemId);
                     if(itemData) {
-                        // Check if shirt to show generic variant info
                         const suffix = isShirt(itemData.name) ? ' (Pilih Lengan)' : '';
                         itemsListHtml += `<li>${escapeHtml(itemData.name)}${suffix} <span class="text-gray-400 text-[10px]">(x${pi.qty})</span></li>`;
                     }
@@ -1239,16 +1200,14 @@
                 pkg.items.forEach(pi => {
                     const item = allItems.find(i => i.id === pi.itemId);
                     if(item) {
-                        // Default variant for shirts is "Lengan Pendek"
                         const defaultVariant = isShirt(item.name) ? 'Lengan Pendek' : null;
-                        // Simpan basePrice (harga asal) untuk rujukan pengiraan nanti
                         cart[item.id] = { 
                             ...item, 
                             quantity: pi.qty, 
                             locked: true, 
                             type:'item', 
                             variant: defaultVariant,
-                            basePrice: item.price // PENTING: Simpan harga asal
+                            basePrice: item.price
                         };
                     }
                 });
@@ -1274,24 +1233,18 @@
             const inCart = cart[item.id];
             const qty = inCart ? inCart.quantity : 0;
             const isLocked = inCart && inCart.locked;
-            
-            // Gunakan harga dalam cart jika ada (sebab mungkin dah update variant), kalau tak guna harga asal db
             const currentPrice = inCart ? inCart.price : item.price;
             
             if(qty > 0) total += (currentPrice * qty);
             
-            // Logic to show variant dropdown if it's a shirt
             let variantSelector = '';
             let priceDisplay = `RM ${currentPrice.toFixed(2)}`;
 
             if(isShirt(item.name) && (qty > 0)) {
                 const currentVariant = (inCart && inCart.variant) ? inCart.variant : 'Lengan Pendek';
-                
-                // Show extra cost info
                 if(currentVariant === 'Lengan Panjang') {
                     priceDisplay += `<div class="text-[10px] text-blue-600 font-bold">(+RM ${LONG_SLEEVE_EXTRA_CHARGE.toFixed(2)})</div>`;
                 }
-
                 variantSelector = `
                     <div class="mt-1">
                         <select onchange="updateCartVariant('${item.id}', this.value)" class="text-[10px] md:text-xs border border-gray-300 rounded p-1 bg-white text-gray-700 outline-none focus:border-blue-500 block w-full md:w-auto shadow-sm">
@@ -1323,11 +1276,8 @@
         qty = parseInt(qty);
         const item = allItems.find(i => i.id === id);
         if(qty > 0) {
-            // Preserve existing variant or set default
             const existingVariant = cart[id] ? cart[id].variant : null;
             const newVariant = existingVariant || (isShirt(item.name) ? 'Lengan Pendek' : null);
-            
-            // Kira harga based on variant semasa
             let finalPrice = item.price;
             if(newVariant === 'Lengan Panjang') finalPrice += LONG_SLEEVE_EXTRA_CHARGE;
 
@@ -1337,8 +1287,8 @@
                 type: 'item', 
                 locked: false, 
                 variant: newVariant,
-                basePrice: item.price, // Simpan harga asal
-                price: finalPrice      // Simpan harga semasa (selepas caj)
+                basePrice: item.price,
+                price: finalPrice
             };
         }
         else if(cart[id] && !cart[id].locked) delete cart[id];
@@ -1348,16 +1298,11 @@
     function updateCartVariant(id, val) {
         if(cart[id]) {
             cart[id].variant = val;
-            
-            // LOGIK HARGA BERUBAH DI SINI
-            // Jika Lengan Panjang, tambah caj. Jika Pendek, balik ke harga asal (basePrice).
             if(val === 'Lengan Panjang') {
                 cart[id].price = cart[id].basePrice + LONG_SLEEVE_EXTRA_CHARGE;
             } else {
                 cart[id].price = cart[id].basePrice;
             }
-            
-            // Re-render untuk kemaskini paparan harga dan total
             renderItemsStep3();
         }
     }
@@ -1427,7 +1372,6 @@
         Object.values(cart).forEach(item => {
             const rowTotal = item.price * item.quantity;
             total += rowTotal;
-            // Display variant info in summary
             let displayName = escapeHtml(item.name);
             if(item.variant) displayName += ` <span class="text-[10px] text-blue-600 font-bold bg-blue-50 px-1 rounded border border-blue-100 ml-1">${item.variant}</span>`;
             
@@ -1475,10 +1419,7 @@
             };
             await db.collection('book_orders').add(order);
             lastOrderData = order;
-
-            // --- PANGGIL FUNGSI TELEGRAM (Diaktifkan Semula) ---
             await sendTelegramNotification(order);
-
             document.getElementById('successOrderId').textContent = order.shortId;
             document.getElementById('successModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
@@ -1486,17 +1427,13 @@
         } catch(e) { console.error(e); showToast('Ralat: ' + e.message, 'error'); btn.disabled = false; btn.innerHTML = "Sahkan Tempahan"; }
     }
 
-    // --- FUNGSI NOTIFIKASI TELEGRAM (CLIENT SIDE) ---
     async function sendTelegramNotification(order) {
         const token = telegramConfig.botToken;
         const chatId = telegramConfig.chatId;
-
         if (!token || !chatId) {
             console.warn("Telegram: Token atau Chat ID tiada. Notifikasi tidak dihantar.");
             return;
         }
-
-        // Format Mesej
         const date = new Date().toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' });
         let itemsList = "";
         Object.values(order.items).forEach(i => {
@@ -1504,7 +1441,6 @@
             if(i.variant) itemName += ` (${i.variant})`;
             itemsList += `- ${itemName} (x${i.quantity})\n`;
         });
-
         const message = `
 📦 *TEMPAHAN BARU DITERIMA*
 ---------------------------
@@ -1521,20 +1457,11 @@ ${itemsList}
 📞 *Ibu Bapa:* ${order.parentName} (${order.parentPhone})
 ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
 `;
-
-        // Hantar ke API Telegram menggunakan GET request (query params)
-        // Ini lebih serasi dengan sekatan CORS berbanding POST JSON
         const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}&parse_mode=Markdown`;
-        
         try {
-            await fetch(url, {
-                method: 'GET',
-                mode: 'no-cors' // Penting: Hantar request tanpa menunggu response (Fire and Forget)
-            });
+            await fetch(url, { method: 'GET', mode: 'no-cors' });
             console.log("Telegram notifikasi berjaya dihantar (No-CORS Mode).");
-        } catch (error) {
-            console.error("Gagal menghantar Telegram:", error);
-        }
+        } catch (error) { console.error("Gagal menghantar Telegram:", error); }
     }
 
     function finishOrder() {
@@ -1548,9 +1475,7 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
         returnToLandingPage();
     }
 
-    // --- ADMIN PANEL LOGIC ---
     function checkAdminStatus() {
-        // FIX: Ensure user is NOT anonymous to access Admin Panel
         if(auth.currentUser && !auth.currentUser.isAnonymous) {
             document.getElementById('landingPage').classList.add('hidden');
             document.getElementById('adminDashboard').classList.remove('hidden');
@@ -1597,10 +1522,7 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
     function closeAdminLogin() { document.getElementById('adminLoginModal').classList.add('hidden'); }
     function logoutAdmin() {
         auth.signOut().then(() => {
-             // After logout, re-sign in anonymously for public access
-             auth.signInAnonymously().then(() => {
-                 returnToLandingPage(); 
-             });
+             auth.signInAnonymously().then(() => { returnToLandingPage(); });
         });
     }
     function showAdminTab(id) {
@@ -1609,17 +1531,12 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
         if(activeBtn) activeBtn.classList.add('active');
         document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
-        
-        // Auto close sidebar on mobile
-        if(window.innerWidth <= 768) {
-            toggleAdminSidebar();
-        }
-
+        if(window.innerWidth <= 768) { toggleAdminSidebar(); }
         if(id === 'analysisTab') renderAnalysis();
         if(id === 'ordersTab') loadOrders();
         if(id === 'nametagTab') renderNametags(); 
         if(id === 'itemsTab') loadItemsAdmin();
-        if(id === 'feesTab') { loadFeesAdmin(); renderFeeOrders(); } // Modified to call renderFeeOrders
+        if(id === 'feesTab') { loadFeesAdmin(); renderFeeOrders(); }
         if(id === 'packagesTab') loadPackagesAdmin();
         if(id === 'classesTab') updateClassesListAdmin();
         if(id === 'settingsTab') loadSettings();
@@ -1629,24 +1546,17 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
         renderAnalysis();
     }
 
-    // --- ADMIN: FEES LIST LOGIC (NEW) ---
     function renderFeeOrders() {
         const tbody = document.getElementById('feesPaymentTableBody');
         tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Memuatkan data...</td></tr>';
-        
-        // Filter orders that have items with type 'fee'
         const feeOrders = adminOrdersData.filter(o => o.items && Object.values(o.items).some(i => i.type === 'fee'));
-        
         if (feeOrders.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Tiada rekod bayaran yuran dijumpai.</td></tr>';
             return;
         }
-
         tbody.innerHTML = '';
         feeOrders.forEach((o, index) => {
             const statusColor = o.status === 'Paid' ? 'text-green-600' : (o.status === 'Processing' ? 'text-blue-600' : 'text-yellow-600');
-            
-            // Extract fee details string and total amount for fees only
             let feeDetails = [];
             let feeTotal = 0;
             Object.values(o.items).forEach(i => {
@@ -1655,7 +1565,6 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
                     feeTotal += (i.price * i.quantity);
                 }
             });
-
             tbody.innerHTML += `
             <tr class="hover:bg-gray-50 border-b border-gray-100 last:border-0">
                 <td class="p-4 text-center font-mono text-gray-400">${index + 1}</td>
@@ -1671,15 +1580,12 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
     function downloadFeesPDF() {
         const feeOrders = adminOrdersData.filter(o => o.items && Object.values(o.items).some(i => i.type === 'fee'));
         if (feeOrders.length === 0) { showToast('Tiada data untuk dimuat turun', 'error'); return; }
-
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-
         doc.setFontSize(18);
         doc.text("Senarai Bayaran Yuran PIBG", 14, 20);
         doc.setFontSize(10);
         doc.text(`Tarikh: ${new Date().toLocaleDateString()}`, 14, 28);
-
         const tableData = feeOrders.map((o, i) => {
             let feeNames = [];
             let feeTotal = 0;
@@ -1689,7 +1595,6 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
                     feeTotal += (itm.price * itm.quantity);
                 }
             });
-
             return [
                 i + 1,
                 o.studentName,
@@ -1699,30 +1604,22 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
                 o.status || 'New'
             ];
         });
-
         doc.autoTable({
             startY: 35,
             head: [['#', 'Nama Pelajar', 'Kelas', 'Butiran', 'Jumlah', 'Status']],
             body: tableData,
             theme: 'grid',
             headStyles: { fillColor: [37, 99, 235], textColor: [255,255,255] },
-            columnStyles: {
-                0: { cellWidth: 10, halign: 'center' },
-                4: { halign: 'right' },
-                5: { halign: 'center' }
-            }
+            columnStyles: { 0: { cellWidth: 10, halign: 'center' }, 4: { halign: 'right' }, 5: { halign: 'center' } }
         });
-
         doc.save("Senarai_Yuran_PIBG.pdf");
     }
 
     function downloadFeesCSV() {
         const feeOrders = adminOrdersData.filter(o => o.items && Object.values(o.items).some(i => i.type === 'fee'));
         if (feeOrders.length === 0) { showToast('Tiada data untuk dimuat turun', 'error'); return; }
-
         let csvContent = "data:text/csv;charset=utf-8,";
         csvContent += "No,Nama Pelajar,Kelas,Butiran Yuran,Jumlah Yuran (RM),Status\n";
-
         feeOrders.forEach((o, index) => {
             let feeNames = [];
             let feeTotal = 0;
@@ -1732,7 +1629,6 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
                     feeTotal += (itm.price * itm.quantity);
                 }
             });
-
             const row = [
                 index + 1,
                 `"${o.studentName}"`,
@@ -1743,7 +1639,6 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
             ];
             csvContent += row.join(",") + "\n";
         });
-
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
@@ -1753,19 +1648,14 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
         document.body.removeChild(link);
     }
 
-    // --- ADMIN: NAMETAGS (NEW FUNCTION) ---
     function renderNametags() {
         const tbody = document.getElementById('nametagTableBody');
         tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Memuatkan data...</td></tr>';
-        
-        // Filter orders that have nametag field and is not empty
         const nametagOrders = adminOrdersData.filter(o => o.nametag && o.nametag.trim() !== "");
-        
         if (nametagOrders.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-400">Tiada tempahan nametag dijumpai dalam rekod semasa.</td></tr>';
             return;
         }
-
         tbody.innerHTML = '';
         nametagOrders.forEach((o, index) => {
             const statusColor = o.status === 'Paid' ? 'text-green-600' : (o.status === 'Processing' ? 'text-blue-600' : 'text-yellow-600');
@@ -1784,15 +1674,12 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
     function downloadNametagPDF() {
         const nametagOrders = adminOrdersData.filter(o => o.nametag && o.nametag.trim() !== "");
         if (nametagOrders.length === 0) { showToast('Tiada data untuk dimuat turun', 'error'); return; }
-
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-
         doc.setFontSize(18);
         doc.text("Senarai Tempahan Nametag", 14, 20);
         doc.setFontSize(10);
         doc.text(`Tarikh: ${new Date().toLocaleDateString()}`, 14, 28);
-
         const tableData = nametagOrders.map((o, i) => [
             i + 1,
             o.studentName,
@@ -1801,31 +1688,22 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
             "1 Set (3 Keping)",
             o.status || 'New'
         ]);
-
         doc.autoTable({
             startY: 35,
             head: [['#', 'Nama Pelajar', 'Kelas', 'Nama Pada Nametag', 'Kuantiti', 'Status']],
             body: tableData,
             theme: 'grid',
-            headStyles: { fillColor: [255, 193, 7] , textColor: [0,0,0] }, // Yellow header
-            columnStyles: {
-                0: { cellWidth: 10, halign: 'center' },
-                3: { fontStyle: 'bold' },
-                4: { halign: 'center' },
-                5: { halign: 'center' }
-            }
+            headStyles: { fillColor: [255, 193, 7] , textColor: [0,0,0] }, 
+            columnStyles: { 0: { cellWidth: 10, halign: 'center' }, 3: { fontStyle: 'bold' }, 4: { halign: 'center' }, 5: { halign: 'center' } }
         });
-
         doc.save("Senarai_Nametag.pdf");
     }
 
     function downloadNametagCSV() {
         const nametagOrders = adminOrdersData.filter(o => o.nametag && o.nametag.trim() !== "");
         if (nametagOrders.length === 0) { showToast('Tiada data untuk dimuat turun', 'error'); return; }
-
         let csvContent = "data:text/csv;charset=utf-8,";
         csvContent += "No,Nama Pelajar,Kelas,Nama Nametag,Kuantiti,Status\n";
-
         nametagOrders.forEach((o, index) => {
             const row = [
                 index + 1,
@@ -1837,7 +1715,6 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
             ];
             csvContent += row.join(",") + "\n";
         });
-
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
@@ -1847,7 +1724,6 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
         document.body.removeChild(link);
     }
 
-    // --- ADMIN: ANALYSIS ---
     async function renderAnalysis() {
         if(!db) return;
         const snap = await db.collection('book_orders').orderBy('timestamp', 'desc').limit(100).get();
@@ -1878,7 +1754,6 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
         });
     }
 
-    // --- ADMIN: ITEMS ---
     function showAddItemForm() { document.getElementById('addItemForm').classList.remove('hidden'); }
     function hideAddItemForm() { document.getElementById('addItemForm').classList.add('hidden'); }
     async function loadItems() { 
@@ -1909,9 +1784,7 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
         });
     }
 
-    // --- ADMIN: ORDERS ---
     async function loadOrders() {
-        // Updated: Removed limit(50) to fetch all orders
         const s = await db.collection('book_orders').orderBy('timestamp', 'desc').get();
         adminOrdersData = []; s.forEach(d => adminOrdersData.push({id: d.id, ...d.data()}));
         renderOrders();
@@ -1920,12 +1793,11 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
         const tbody = document.getElementById('ordersTableBody');
         tbody.innerHTML = '';
         const filter = document.getElementById('adminSearchInput').value.toLowerCase();
-        const classFilter = document.getElementById('adminClassFilter').value; // Updated: Get selected class
+        const classFilter = document.getElementById('adminClassFilter').value; 
 
-        // Filter first to ensure correct indexing
         const filteredData = adminOrdersData.filter(o => 
             (!filter || (o.studentName && o.studentName.toLowerCase().includes(filter)) || (o.shortId && o.shortId.toLowerCase().includes(filter))) &&
-            (!classFilter || o.studentClass === classFilter) // Updated: Apply class filter
+            (!classFilter || o.studentClass === classFilter) 
         );
 
         filteredData.forEach((o, index) => {
@@ -1946,7 +1818,7 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
             tbody.innerHTML += `
             <tr class="hover:bg-gray-50 border-b border-gray-100 last:border-0 cursor-pointer" onclick="viewOrderDetails('${o.id}')">
                 <td class="p-4 text-center"><input type="checkbox" value="${o.id}" class="order-checkbox rounded border-gray-300" onclick="event.stopPropagation()"></td>
-                <td class="p-4 text-center font-mono text-gray-500 font-bold">${index + 1}</td> <!-- Numbering Column -->
+                <td class="p-4 text-center font-mono text-gray-500 font-bold">${index + 1}</td> 
                 <td class="p-4 text-xs text-gray-500"><span class="font-mono font-bold text-gray-800">#${escapeHtml(o.shortId)}</span><br>${date}</td>
                 <td class="p-4 font-medium text-gray-800">${escapeHtml(o.studentName)}</td>
                 <td class="p-4 text-gray-600">${escapeHtml(o.studentClass)}</td>
@@ -1972,7 +1844,23 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
              if(i.variant) displayName += ` (${i.variant})`;
              itemsHtml += `<div class="flex justify-between py-2 border-b border-dashed border-gray-200 last:border-0"><span>${displayName} <span class="text-gray-400 text-xs">x${i.quantity}</span></span><span class="font-mono">RM ${(i.price*i.quantity).toFixed(2)}</span></div>`;
         });
-        document.getElementById('orderDetailsContent').innerHTML = `<div class="grid grid-cols-2 gap-4 mb-4 bg-gray-50 p-4 rounded-xl border border-gray-100"><div><p class="text-xs text-gray-400 uppercase">Pelajar</p><p class="font-bold">${escapeHtml(o.studentName)}</p></div><div><p class="text-xs text-gray-400 uppercase">Kelas</p><p class="font-bold">${escapeHtml(o.studentClass)}</p></div><div><p class="text-xs text-gray-400 uppercase">Ibu Bapa</p><p class="font-bold">${escapeHtml(o.parentName)}</p></div><div><p class="text-xs text-gray-400 uppercase">Telefon</p><p class="font-bold">${escapeHtml(o.parentPhone)}</p></div></div>${o.nametag ? `<div class="bg-yellow-50 text-yellow-800 p-3 rounded-lg mb-4 text-center border border-yellow-200 font-bold">NAMETAG: ${escapeHtml(o.nametag)}</div>` : ''}<div class="bg-white border border-gray-200 rounded-xl p-4 mb-4"><h4 class="font-bold text-gray-700 mb-2 border-b pb-2">Item</h4>${itemsHtml}<div class="flex justify-between mt-3 pt-2 border-t font-bold text-lg"><span>Jumlah</span><span class="text-blue-600">RM ${o.total.toFixed(2)}</span></div></div><div class="text-xs text-gray-400 text-center">ID Rujukan: ${o.id}</div>`;
+        document.getElementById('orderDetailsContent').innerHTML = `
+        <div class="grid grid-cols-2 gap-4 mb-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+            <div><p class="text-xs text-gray-400 uppercase">Pelajar</p><p class="font-bold">${escapeHtml(o.studentName)}</p></div>
+            <div><p class="text-xs text-gray-400 uppercase">Kelas</p><p class="font-bold">${escapeHtml(o.studentClass)}</p></div>
+            <div><p class="text-xs text-gray-400 uppercase">Ibu Bapa</p><p class="font-bold">${escapeHtml(o.parentName)}</p></div>
+            <div><p class="text-xs text-gray-400 uppercase">Telefon</p><p class="font-bold">${escapeHtml(o.parentPhone)}</p></div>
+        </div>
+        ${o.nametag ? `<div class="bg-yellow-50 text-yellow-800 p-3 rounded-lg mb-4 text-center border border-yellow-200 font-bold">NAMETAG: ${escapeHtml(o.nametag)}</div>` : ''}
+        <div class="bg-white border border-gray-200 rounded-xl p-4 mb-4">
+            <div class="flex justify-between items-center mb-2 border-b pb-2">
+                <h4 class="font-bold text-gray-700">Item</h4>
+                <button onclick="startEditOrder('${o.id}')" class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded font-bold hover:bg-blue-200"><i class="fas fa-edit"></i> Edit Item</button>
+            </div>
+            ${itemsHtml}
+            <div class="flex justify-between mt-3 pt-2 border-t font-bold text-lg"><span>Jumlah</span><span class="text-blue-600">RM ${o.total.toFixed(2)}</span></div>
+        </div>
+        <div class="text-xs text-gray-400 text-center">ID Rujukan: ${o.id}</div>`;
         document.getElementById('orderDetailsModal').classList.remove('hidden');
     }
     async function updateStatus(id, s) { 
@@ -1991,7 +1879,6 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
         });
     }
 
-    // --- ADMIN: PACKAGES ---
     async function loadPackages() {
         const s = await db.collection('book_packages').get();
         allPackages = []; s.forEach(d => allPackages.push({id:d.id, ...d.data()}));
@@ -2044,7 +1931,6 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
     }
     async function deletePackage(id) { await db.collection('book_packages').doc(id).delete(); loadPackages().then(loadPackagesAdmin); }
 
-    // --- ADMIN: FEES & CLASSES ---
     async function loadFees() { const s = await db.collection('pibg_fees').get(); allFees = []; s.forEach(d => allFees.push({id:d.id, ...d.data()})); }
     function loadFeesAdmin() {
         const b = document.getElementById('feesAdminTableBody'); b.innerHTML = '';
@@ -2077,8 +1963,6 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
 
     async function loadSettings() {
         if(!db) return;
-        
-        // 1. Muat turun Tetapan Pembayaran & Status Sistem (Public Boleh Baca)
         try {
             const p = await db.collection('settings').doc('payment_config').get();
             if(p.exists) { 
@@ -2088,13 +1972,10 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
                 if(c) c.checked = paymentConfig.cash;
                 if(o) o.checked = paymentConfig.online;
             }
-
-            // Load System Config (Status Tempahan)
             const s = await db.collection('settings').doc('system_config').get();
             if(s.exists) {
                 systemConfig = s.data();
                 const t = document.getElementById('toggleTakingOrders');
-                // Default to true if field doesn't exist
                 if(t) t.checked = (systemConfig.takingOrders !== false);
             }
         } catch (e) {
@@ -2103,7 +1984,6 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
     }
 
     async function loadTelegramSettings() {
-        // PINDAAN: Cuba muat turun untuk semua pengguna (Public & Admin)
         try {
             const t = await db.collection('settings').doc('telegram_settings').get();
             if(t.exists) { 
@@ -2111,12 +1991,10 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
                     botToken: t.data().botToken || '',
                     chatId: t.data().chatId || ''
                 };
-                // Kemaskini input di Admin Panel jika wujud
                 const tokenInput = document.getElementById('telegramBotToken');
                 const chatInput = document.getElementById('telegramChatId');
                 if(tokenInput) tokenInput.value = telegramConfig.botToken; 
                 if(chatInput) chatInput.value = telegramConfig.chatId; 
-                
                 console.log("Tetapan Telegram berjaya dimuat turun.");
             }
         } catch (e) {
@@ -2203,6 +2081,138 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
         if(order) generateInvoicePDF(order);
         else showToast('Ralat data, sila cari semula.', 'error');
     }
+
+    // --- NEW: ADMIN EDIT ORDER FUNCTIONS ---
+    function startEditOrder(orderId) {
+        editingOrderId = orderId;
+        const order = adminOrdersData.find(o => o.id === orderId);
+        if(!order) return;
+        
+        // Deep copy items to temp object to avoid direct mutation
+        tempEditCart = JSON.parse(JSON.stringify(order.items));
+        
+        renderEditOrderUI();
+    }
+
+    function renderEditOrderUI() {
+        let itemsHtml = '';
+        let total = 0;
+        
+        Object.entries(tempEditCart).forEach(([key, item]) => {
+            const itemTotal = item.price * item.quantity;
+            total += itemTotal;
+            let displayName = escapeHtml(item.name);
+            if(item.variant) displayName += ` (${item.variant})`;
+            
+            itemsHtml += `
+            <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                <div class="flex-1">
+                    <div class="text-sm font-medium">${displayName}</div>
+                    <div class="text-xs text-gray-500">RM ${item.price.toFixed(2)} / unit</div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="number" min="1" value="${item.quantity}" onchange="updateEditItemQty('${key}', this.value)" class="w-16 border rounded p-1 text-center text-sm">
+                    <button onclick="removeEditItem('${key}')" class="text-red-500 hover:bg-red-50 p-1 rounded"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>`;
+        });
+
+        // Dropdown for adding new items
+        let itemOptions = '<option value="">-- Tambah Item --</option>';
+        allItems.forEach(i => {
+            itemOptions += `<option value="${i.id}">${escapeHtml(i.name)} - RM ${i.price.toFixed(2)}</option>`;
+        });
+
+        const html = `
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+            <h4 class="font-bold text-blue-700 mb-3 flex items-center gap-2"><i class="fas fa-edit"></i> Mod Suntingan</h4>
+            <div class="bg-white rounded-lg border border-gray-200 p-3 mb-3 max-h-60 overflow-y-auto custom-scrollbar">
+                ${itemsHtml.length ? itemsHtml : '<div class="text-center text-gray-400 text-sm py-4">Tiada item.</div>'}
+            </div>
+            
+            <div class="flex gap-2 mb-3">
+                <select id="addEditItemSelect" class="flex-1 border rounded p-2 text-sm">${itemOptions}</select>
+                <button onclick="addEditItem()" class="bg-green-600 text-white px-3 rounded text-sm"><i class="fas fa-plus"></i></button>
+            </div>
+
+            <div class="flex justify-between items-center font-bold text-lg border-t border-blue-200 pt-3 mb-4">
+                <span>Jumlah Baru:</span>
+                <span class="text-blue-600">RM ${total.toFixed(2)}</span>
+            </div>
+
+            <div class="flex gap-2">
+                <button onclick="viewOrderDetails('${editingOrderId}')" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 rounded-lg font-bold text-sm">Batal</button>
+                <button onclick="saveEditOrder()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-bold text-sm">Simpan Perubahan</button>
+            </div>
+        </div>`;
+        
+        document.getElementById('orderDetailsContent').innerHTML = html;
+    }
+
+    function updateEditItemQty(key, val) {
+        const qty = parseInt(val);
+        if(qty > 0) {
+            tempEditCart[key].quantity = qty;
+            renderEditOrderUI();
+        }
+    }
+
+    function removeEditItem(key) {
+        delete tempEditCart[key];
+        renderEditOrderUI();
+    }
+
+    function addEditItem() {
+        const id = document.getElementById('addEditItemSelect').value;
+        if(id) {
+            const item = allItems.find(i => i.id === id);
+            if(item) {
+                // Check if already exists, add qty if so, else add new
+                if(tempEditCart[id]) {
+                    tempEditCart[id].quantity += 1;
+                } else {
+                    tempEditCart[id] = {
+                        ...item,
+                        quantity: 1,
+                        type: 'item', // Default type
+                        // Check if shirt for default variant logic (optional, keeping simple for admin)
+                        price: item.price
+                    };
+                }
+                renderEditOrderUI();
+            }
+        }
+    }
+
+    async function saveEditOrder() {
+        if(!editingOrderId) return;
+        
+        let newTotal = 0;
+        Object.values(tempEditCart).forEach(i => newTotal += (i.price * i.quantity));
+
+        try {
+            await db.collection('book_orders').doc(editingOrderId).update({
+                items: tempEditCart,
+                total: newTotal
+            });
+            
+            // Update local data
+            const idx = adminOrdersData.findIndex(o => o.id === editingOrderId);
+            if(idx !== -1) {
+                adminOrdersData[idx].items = tempEditCart;
+                adminOrdersData[idx].total = newTotal;
+            }
+            
+            showToast('Tempahan berjaya dikemaskini', 'success');
+            viewOrderDetails(editingOrderId); // Go back to view mode
+            renderOrders(); // Refresh table list total
+            renderAnalysis(); // Refresh stats
+        } catch(e) {
+            console.error(e);
+            showToast('Ralat mengemaskini tempahan', 'error');
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         // Log masuk secara anonymous supaya Rules boleh validate 'request.auth != null'
         // Ini penting jika rules memerlukan sekurang-kurangnya identiti anonymous
