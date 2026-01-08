@@ -589,6 +589,21 @@
                            <span class="text-xs text-gray-400">Menunggu Tindakan</span>
                        </div>
                    </div>
+                   
+                   <!-- ADDED NEW STATS ROW -->
+                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                       <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
+                           <span class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Jumlah Bayaran Diterima</span>
+                           <span class="text-3xl font-bold text-green-600 mb-2">RM <span id="statTotalPaidValue">0.00</span></span>
+                           <span class="text-xs text-gray-400">Daripada ibu bapa yang telah bayar</span>
+                       </div>
+                       <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
+                           <span class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Baki Belum Bayar</span>
+                           <span class="text-3xl font-bold text-red-600 mb-2">RM <span id="statTotalUnpaidValue">0.00</span></span>
+                           <span class="text-xs text-gray-400">Tertunggak (Belum Selesai)</span>
+                       </div>
+                   </div>
+
                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                        <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                            <h3 class="font-bold text-gray-800 mb-4">Pecahan Jualan Mengikut Kelas</h3>
@@ -1728,17 +1743,39 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
         if(!db) return;
         const snap = await db.collection('book_orders').orderBy('timestamp', 'desc').limit(100).get();
         adminOrdersData = []; snap.forEach(d => adminOrdersData.push({id: d.id, ...d.data()}));
+        
         let totalRevenue = 0, paidCount = 0, unpaidCount = 0, classSales = {};
+        // NEW VARIABLES
+        let totalPaidValue = 0;
+        let totalUnpaidValue = 0;
+
         adminOrdersData.forEach(o => {
-            totalRevenue += (o.total || 0);
-            if(o.status === 'Paid') paidCount++; else unpaidCount++;
+            const orderTotal = parseFloat(o.total) || 0; // Ensure number
+            totalRevenue += orderTotal;
+            
+            if(o.status === 'Paid') {
+                paidCount++;
+                totalPaidValue += orderTotal;
+            } else {
+                unpaidCount++;
+                totalUnpaidValue += orderTotal;
+            }
+            
             const c = o.studentClass || 'Lain-lain';
-            classSales[c] = (classSales[c] || 0) + (o.total || 0);
+            classSales[c] = (classSales[c] || 0) + orderTotal;
         });
+
         document.getElementById('statRevenue').innerText = totalRevenue.toFixed(2);
         document.getElementById('statOrders').innerText = adminOrdersData.length;
         document.getElementById('statPaid').innerText = paidCount;
         document.getElementById('statUnpaid').innerText = unpaidCount;
+        
+        // NEW DOM UPDATES
+        const paidEl = document.getElementById('statTotalPaidValue');
+        const unpaidEl = document.getElementById('statTotalUnpaidValue');
+        if(paidEl) paidEl.innerText = totalPaidValue.toFixed(2);
+        if(unpaidEl) unpaidEl.innerText = totalUnpaidValue.toFixed(2);
+
         const chartContainer = document.getElementById('classSalesChart');
         chartContainer.innerHTML = '';
         const maxSale = Math.max(...Object.values(classSales), 1);
