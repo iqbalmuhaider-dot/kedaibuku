@@ -1758,7 +1758,7 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
     function hideAddItemForm() { document.getElementById('addItemForm').classList.add('hidden'); }
     async function loadItems() { 
         const s = await db.collection('book_items').get();
-        allItems = []; s.forEach(d => allItems.push({id: d.id, ...d.data()}));
+        allItems = []; s.forEach(d => allItems.push({id: d.id, ...d.data(), price: parseFloat(d.data().price) || 0}));
         allItems.sort((a,b) => a.name.localeCompare(b.name));
     }
     function loadItemsAdmin() {
@@ -1931,7 +1931,7 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
     }
     async function deletePackage(id) { await db.collection('book_packages').doc(id).delete(); loadPackages().then(loadPackagesAdmin); }
 
-    async function loadFees() { const s = await db.collection('pibg_fees').get(); allFees = []; s.forEach(d => allFees.push({id:d.id, ...d.data()})); }
+    async function loadFees() { const s = await db.collection('pibg_fees').get(); allFees = []; s.forEach(d => allFees.push({id:d.id, ...d.data(), amount: parseFloat(d.data().amount) || 0})); }
     function loadFeesAdmin() {
         const b = document.getElementById('feesAdminTableBody'); b.innerHTML = '';
         allFees.forEach(f => { b.innerHTML += `<tr><td class="p-3">${escapeHtml(f.name)}</td><td class="p-3 text-right">RM ${f.amount}</td><td class="p-3 text-center"><button onclick="deleteFee('${f.id}')" class="text-red-500"><i class="fas fa-trash"></i></button></td></tr>`; });
@@ -2099,19 +2099,25 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
         let total = 0;
         
         Object.entries(tempEditCart).forEach(([key, item]) => {
-            const itemTotal = item.price * item.quantity;
+            const price = parseFloat(item.price) || 0;
+            const qty = parseInt(item.quantity) || 0;
+            const itemTotal = price * qty;
             total += itemTotal;
             let displayName = escapeHtml(item.name);
             if(item.variant) displayName += ` (${item.variant})`;
             
+            // Mark fees for UI clarity
+            const isFee = item.type === 'fee';
+            const badge = isFee ? '<span class="text-[10px] bg-purple-100 text-purple-700 px-1 rounded ml-1">Yuran</span>' : '';
+
             itemsHtml += `
             <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                 <div class="flex-1">
-                    <div class="text-sm font-medium">${displayName}</div>
-                    <div class="text-xs text-gray-500">RM ${item.price.toFixed(2)} / unit</div>
+                    <div class="text-sm font-medium">${displayName} ${badge}</div>
+                    <div class="text-xs text-gray-500">RM ${price.toFixed(2)} x ${qty} = <span class="font-bold text-gray-700">RM ${itemTotal.toFixed(2)}</span></div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <input type="number" min="1" value="${item.quantity}" onchange="updateEditItemQty('${key}', this.value)" class="w-16 border rounded p-1 text-center text-sm">
+                    <input type="number" min="1" value="${qty}" onchange="updateEditItemQty('${key}', this.value)" class="w-16 border rounded p-1 text-center text-sm">
                     <button onclick="removeEditItem('${key}')" class="text-red-500 hover:bg-red-50 p-1 rounded"><i class="fas fa-trash"></i></button>
                 </div>
             </div>`;
@@ -2123,6 +2129,12 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
             itemOptions += `<option value="${i.id}">${escapeHtml(i.name)} - RM ${i.price.toFixed(2)}</option>`;
         });
 
+        // Dropdown for adding new fees
+        let feeOptions = '<option value="">-- Tambah Yuran --</option>';
+        allFees.forEach(f => {
+            feeOptions += `<option value="${f.id}">${escapeHtml(f.name)} - RM ${f.amount.toFixed(2)}</option>`;
+        });
+
         const html = `
         <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
             <h4 class="font-bold text-blue-700 mb-3 flex items-center gap-2"><i class="fas fa-edit"></i> Mod Suntingan</h4>
@@ -2130,9 +2142,15 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
                 ${itemsHtml.length ? itemsHtml : '<div class="text-center text-gray-400 text-sm py-4">Tiada item.</div>'}
             </div>
             
-            <div class="flex gap-2 mb-3">
-                <select id="addEditItemSelect" class="flex-1 border rounded p-2 text-sm">${itemOptions}</select>
-                <button onclick="addEditItem()" class="bg-green-600 text-white px-3 rounded text-sm"><i class="fas fa-plus"></i></button>
+            <div class="flex flex-col gap-2 mb-3">
+                <div class="flex gap-2">
+                    <select id="addEditItemSelect" class="flex-1 border rounded p-2 text-sm">${itemOptions}</select>
+                    <button onclick="addEditItem()" class="bg-green-600 text-white px-3 rounded text-sm"><i class="fas fa-plus"></i> Item</button>
+                </div>
+                <div class="flex gap-2">
+                    <select id="addEditFeeSelect" class="flex-1 border rounded p-2 text-sm">${feeOptions}</select>
+                    <button onclick="addEditFee()" class="bg-purple-600 text-white px-3 rounded text-sm"><i class="fas fa-plus"></i> Yuran</button>
+                </div>
             </div>
 
             <div class="flex justify-between items-center font-bold text-lg border-t border-blue-200 pt-3 mb-4">
@@ -2176,10 +2194,30 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
                         quantity: 1,
                         type: 'item', // Default type
                         // Check if shirt for default variant logic (optional, keeping simple for admin)
-                        price: item.price
+                        price: parseFloat(item.price)
                     };
                 }
                 renderEditOrderUI();
+            }
+        }
+    }
+
+    function addEditFee() {
+        const id = document.getElementById('addEditFeeSelect').value;
+        if(id) {
+            const fee = allFees.find(f => f.id === id);
+            if(fee) {
+                if(!tempEditCart[id]) {
+                    tempEditCart[id] = {
+                        ...fee,
+                        price: parseFloat(fee.amount), // Normalize 'amount' to 'price' for calculations
+                        quantity: 1,
+                        type: 'fee'
+                    };
+                    renderEditOrderUI();
+                } else {
+                    showToast('Yuran ini sudah ada dalam senarai.', 'info');
+                }
             }
         }
     }
@@ -2188,7 +2226,7 @@ ${order.nametag ? `📛 *Nametag:* ${order.nametag}` : ''}
         if(!editingOrderId) return;
         
         let newTotal = 0;
-        Object.values(tempEditCart).forEach(i => newTotal += (i.price * i.quantity));
+        Object.values(tempEditCart).forEach(i => newTotal += ((parseFloat(i.price)||0) * (parseInt(i.quantity)||0)));
 
         try {
             await db.collection('book_orders').doc(editingOrderId).update({
